@@ -6,17 +6,17 @@ import (
 
 // xsdSchema represents an entire Schema structure.
 type xsdSchema struct {
-	XMLName            xml.Name          `xml:"schema"`
-	Tns                string            `xml:"xmlns tns,attr"`
-	Xs                 string            `xml:"xmlns xs,attr"`
-	Version            string            `xml:"version,attr"`
-	TargetNamespace    string            `xml:"targetNamespace,attr"`
-	ElementFormDefault string            `xml:"elementFormDefault,attr"`
-	Includes           []*xsdInclude     `xml:"include"`
-	Imports            []*xsdImport      `xml:"import"`
-	Elements           []*xsdElement     `xml:"element"`
-	ComplexTypes       []*xsdComplexType `xml:"complexType"` //global
-	SimpleType         []*xsdSimpleType  `xml:"simpleType"`
+	XMLName            xml.Name         `xml:"schema"`
+	Tns                string           `xml:"xmlns tns,attr"`
+	Xs                 string           `xml:"xmlns xs,attr"`
+	Version            string           `xml:"version,attr"`
+	TargetNamespace    string           `xml:"targetNamespace,attr"`
+	ElementFormDefault string           `xml:"elementFormDefault,attr"`
+	Includes           []xsdInclude     `xml:"include"`
+	Imports            []xsdImport      `xml:"import"`
+	Elements           []xsdElement     `xml:"element"`
+	ComplexTypes       []xsdComplexType `xml:"complexType"` //global
+	SimpleType         []xsdSimpleType  `xml:"simpleType"`
 }
 
 // xsdInclude represents schema includes.
@@ -43,7 +43,7 @@ type xsdElement struct {
 	MaxOccurs   string          `xml:"maxOccurs,attr"`
 	ComplexType *xsdComplexType `xml:"complexType"` //local
 	SimpleType  *xsdSimpleType  `xml:"simpleType"`
-	Groups      []*xsdGroup     `xml:"group"`
+	Groups      []xsdGroup      `xml:"group"`
 }
 
 // xsdComplexType represents a Schema complex type.

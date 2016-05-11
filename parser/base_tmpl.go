@@ -1,12 +1,21 @@
 package parser
 
 const baseTmpl = `
+// generated with github.com/Bridgevine/wsdlgo; DO NOT EDIT
+
 package {{.Name}}
 
 {{range .WSDL.Types.Schemas}}
 	{{ $targetNamespace := .TargetNamespace }}
 
-	type (
+// Definition of simple types
+type (
 	{{range .SimpleType}}	{{template "SimpleType" .}}
-	{{end}})
+{{end}})
+
+// Constants associated with simple types defined above
+const (
+	{{range .SimpleType}}	{{template "Const" .}}
+{{end}})
+
 {{end}}`

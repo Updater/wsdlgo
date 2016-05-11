@@ -3,18 +3,11 @@ package parser
 import (
 	"bytes"
 	"encoding/xml"
-	"errors"
 	"go/format"
 	"io"
-	"io/ioutil"
 	"strings"
 	"text/template"
 	"unicode"
-)
-
-// Errors that can be returned.
-var (
-	ErrMissingWSDLFile = errors.New("WSDL file is required to generate Go proxy")
 )
 
 // Generator defines behavior for sending generated code to a writer interface.
@@ -28,7 +21,7 @@ type generator struct {
 	WSDL *wsdl
 
 	content []byte
-	file    string
+	reader  io.Reader
 }
 
 // Write implements the write behavior for Generator interface.
@@ -52,14 +45,21 @@ func (g *generator) populateContent() error {
 		"toGoType":             toGoType,
 		"replaceReservedWords": replaceReservedWords,
 		"makeUnexported":       makeUnexported,
+		"normalize":            normalize,
+		"lint":                 lint,
 	}
 
-	tb, err := template.New("base.tmpl").Funcs(funcMap).Parse(baseTmpl)
+	tb, err := template.New("types").Funcs(funcMap).Parse(baseTmpl)
 	if err != nil {
 		return err
 	}
 
-	tt, err := template.Must(tb.Clone()).Parse(simpleTypesTmpl)
+	tc, err := template.Must(tb.Clone()).Funcs(funcMap).Parse(constTmpl)
+	if err != nil {
+		return err
+	}
+
+	tt, err := template.Must(tc.Clone()).Funcs(funcMap).Parse(simpleTypesTmpl)
 	if err != nil {
 		return err
 	}
@@ -75,14 +75,13 @@ func (g *generator) populateContent() error {
 }
 
 func (g *generator) parse() error {
-	data, err := ioutil.ReadFile(g.file)
-	if err != nil {
+	b := new(bytes.Buffer)
+	if _, err := b.ReadFrom(g.reader); err != nil {
 		return err
 	}
 
 	g.WSDL = new(wsdl)
-	err = xml.Unmarshal(data, g.WSDL)
-	if err != nil {
+	if err := xml.Unmarshal(b.Bytes(), g.WSDL); err != nil {
 		return err
 	}
 
@@ -90,20 +89,15 @@ func (g *generator) parse() error {
 }
 
 // NewGenerator initializes a Generator interface implemented by generator type.
-func NewGenerator(in string, pkg string) (Generator, error) {
-	in = strings.TrimSpace(in)
-	if in == "" {
-		return nil, ErrMissingWSDLFile
-	}
-
+func NewGenerator(r io.Reader, pkg string) (Generator, error) {
 	pkg = strings.TrimSpace(pkg)
 	if pkg == "" {
 		pkg = "types"
 	}
 
 	g := generator{
-		file: in,
-		Name: pkg,
+		reader: r,
+		Name:   pkg,
 	}
 
 	err := g.parse()
@@ -210,4 +204,58 @@ func toGoType(s string) string {
 	}
 
 	return "*" + replaceReservedWords(makeUnexported(t))
+}
+
+// lint returns a different name if it should be different.
+func lint(s string) string {
+	u := strings.ToUpper(s)
+	_, ok := commonInitialisms[u]
+	if ok {
+		return u
+	}
+
+	return s
+}
+
+// commonInitialisms is a set of common initialisms.
+// Only add entries that are highly unlikely to be non-initialisms.
+// For instance, "ID" is fine (Freudian code is rare), but "AND" is not.
+// Borrowwed from github.com/golang/lint
+var commonInitialisms = map[string]bool{
+	"API":   true,
+	"ASCII": true,
+	"CPU":   true,
+	"CSS":   true,
+	"DNS":   true,
+	"EOF":   true,
+	"GUID":  true,
+	"HTML":  true,
+	"HTTP":  true,
+	"HTTPS": true,
+	"ID":    true,
+	"IP":    true,
+	"JSON":  true,
+	"LHS":   true,
+	"QPS":   true,
+	"RAM":   true,
+	"RHS":   true,
+	"RPC":   true,
+	"SLA":   true,
+	"SMTP":  true,
+	"SQL":   true,
+	"SSH":   true,
+	"TCP":   true,
+	"TLS":   true,
+	"TTL":   true,
+	"UDP":   true,
+	"UI":    true,
+	"UID":   true,
+	"UUID":  true,
+	"URI":   true,
+	"URL":   true,
+	"UTF8":  true,
+	"VM":    true,
+	"XML":   true,
+	"XSRF":  true,
+	"XSS":   true,
 }

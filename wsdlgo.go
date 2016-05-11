@@ -37,12 +37,20 @@ func main() {
 		log.Fatalln("Output file cannot be the same WSDL file")
 	}
 
-	// load wsdl and generate code
-	g, err := parser.NewGenerator(wp, *pkg)
+	// Open wsdl file
+	f, err := os.Open(wp)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	defer f.Close()
+
+	// generate code
+	g, err := parser.NewGenerator(f, *pkg)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
+	// Write .go source code file
 	w := os.Stdout
 	if *outFile != "" {
 		w, err = os.OpenFile(*outFile, os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0744)

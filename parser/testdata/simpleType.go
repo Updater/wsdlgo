@@ -2,6 +2,15 @@
 
 package types
 
+import (
+	"encoding/xml"
+	"time"
+)
+
+// against "unused imports"
+var _ time.Time
+var _ xml.Name
+
 // Definition of simple types
 type (
 	myversion string
@@ -15,3 +24,8 @@ const (
 	myversion19   myversion = "19"
 	myversionHTML myversion = "HTML"
 )
+
+type ruby struct {
+	Myversion *myversion `xml:"myversion"`
+	Date      *time.Time `xml:"date"`
+}

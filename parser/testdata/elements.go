@@ -22,6 +22,6 @@ type echoele struct {
 }
 
 type echoResponse struct {
-	Struct1 *echoStruct `xml:"struct1"`
-	Struct2 *echoStruct `xml:"struct-2"`
+	Struct1 []echoStruct `xml:"struct1"`
+	Struct2 *echoStruct  `xml:"struct-2"`
 }

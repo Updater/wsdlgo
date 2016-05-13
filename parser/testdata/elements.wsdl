@@ -29,7 +29,7 @@
       <xsd:element name="echo_response">
         <xsd:complexType>
           <xsd:sequence>
-            <xsd:element minOccurs="0" maxOccurs="1" name="struct1" type="tns:echo_struct" />
+            <xsd:element minOccurs="0" maxOccurs="unbounded" name="struct1" type="tns:echo_struct" />
             <xsd:element minOccurs="0" maxOccurs="1" name="struct-2" type="tns:echo_struct" />
           </xsd:sequence>
           <xsd:attribute name="attr_string" type="xsd:string" />

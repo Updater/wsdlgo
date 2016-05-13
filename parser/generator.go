@@ -67,7 +67,12 @@ func (g *generator) populateContent() error {
 		return err
 	}
 
-	tt, err := template.Must(tm.Clone()).Funcs(funcMap).Parse(simpleTypesTmpl)
+	ta, err := template.Must(tm.Clone()).Funcs(funcMap).Parse(attributesTmpl)
+	if err != nil {
+		return err
+	}
+
+	tt, err := template.Must(ta.Clone()).Funcs(funcMap).Parse(simpleTypesTmpl)
 	if err != nil {
 		return err
 	}

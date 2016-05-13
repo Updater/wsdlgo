@@ -13,6 +13,7 @@ const complexTypesTmpl = `
 			{{template "Elements" .Choice}}
 			{{template "Elements" .SequenceChoice}}
 			{{template "Elements" .All}}
+			{{template "Attributes" .Attributes}}
 		{{end}}
 	{{end}}
 	} ` + "`" + `xml:"{{.Name}}"` + "`" + `

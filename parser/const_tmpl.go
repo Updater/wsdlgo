@@ -5,7 +5,7 @@ const constTmpl = `
 {{$type := replaceReservedWords .Name | makeUnexported}}
 {{with .Restriction}}
 	{{range .Enumeration}}
-		{{$type}}{{$value := normalize .Value | lint}}{{$value}} {{$type}} = "{{$value}}" {{end}}
+		{{$type}}{{$value := normalize .Value}}{{$value | lint}} {{$type}} = "{{$value}}" {{end}}
 {{end}}
 {{end}}
 `

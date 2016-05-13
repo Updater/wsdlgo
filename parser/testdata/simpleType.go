@@ -22,7 +22,7 @@ const (
 	myversion16   myversion = "16"
 	myversion18   myversion = "18"
 	myversion19   myversion = "19"
-	myversionHTML myversion = "HTML"
+	myversionHTML myversion = "html"
 )
 
 type ruby struct {

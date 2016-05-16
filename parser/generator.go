@@ -43,10 +43,13 @@ func (g *generator) Write(w io.Writer) error {
 func (g *generator) populateContent() error {
 	funcMap := template.FuncMap{
 		"toGoType":             toGoType,
+		"toGoPointerType":      toGoPointerType,
 		"replaceReservedWords": replaceReservedWords,
 		"makeUnexported":       makeUnexported,
+		"makeExported":         makeExported,
 		"normalize":            normalize,
 		"lint":                 lint,
+		"removeNS":             removeNS,
 	}
 
 	tb, err := template.New("types").Funcs(funcMap).Parse(baseTmpl)
@@ -59,13 +62,28 @@ func (g *generator) populateContent() error {
 		return err
 	}
 
-	tt, err := template.Must(tc.Clone()).Funcs(funcMap).Parse(simpleTypesTmpl)
+	tm, err := template.Must(tc.Clone()).Funcs(funcMap).Parse(elementsTmpl)
+	if err != nil {
+		return err
+	}
+
+	ta, err := template.Must(tm.Clone()).Funcs(funcMap).Parse(attributesTmpl)
+	if err != nil {
+		return err
+	}
+
+	tt, err := template.Must(ta.Clone()).Funcs(funcMap).Parse(simpleTypesTmpl)
+	if err != nil {
+		return err
+	}
+
+	tx, err := template.Must(tt.Clone()).Funcs(funcMap).Parse(complexTypesTmpl)
 	if err != nil {
 		return err
 	}
 
 	d := new(bytes.Buffer)
-	err = tt.Execute(d, g)
+	err = tx.Execute(d, g)
 	if err != nil {
 		return err
 	}
@@ -114,6 +132,16 @@ func makeUnexported(s string) string {
 	return string(f)
 }
 
+func makeExported(s string) string {
+	f := []rune(s)
+	if len(f) == 0 {
+		return s
+	}
+
+	f[0] = unicode.ToUpper(f[0])
+	return string(f)
+}
+
 var reservedWords = map[string]string{
 	"break":       "break_",
 	"default":     "default_",
@@ -155,8 +183,25 @@ func normalize(s string) string {
 	return strings.Map(m, s)
 }
 
+func capitalizeMultipleWord(s string) string {
+	var b bytes.Buffer
+	ss := strings.Split(s, "_")
+
+	if len(ss) < 2 {
+		return s
+	}
+
+	b.WriteString(ss[0])
+	for i := 1; i < len(ss); i++ {
+		b.WriteString(makeExported(ss[i]))
+	}
+
+	return b.String()
+}
+
 // replaceReservedWords replaces Go reserved keywords to avoid compilation issues
 func replaceReservedWords(s string) string {
+	s = capitalizeMultipleWord(s)
 	v, ok := reservedWords[s]
 	if ok {
 		return v
@@ -203,7 +248,16 @@ func toGoType(s string) string {
 		return v
 	}
 
-	return "*" + replaceReservedWords(makeUnexported(t))
+	return replaceReservedWords(t)
+}
+
+func toGoPointerType(s string) string {
+	v := toGoType(s)
+	if v == "interface{}" || strings.HasPrefix(v, "[]") {
+		return v
+	}
+
+	return "*" + v
 }
 
 // lint returns a different name if it should be different.
@@ -258,4 +312,15 @@ var commonInitialisms = map[string]bool{
 	"XML":   true,
 	"XSRF":  true,
 	"XSS":   true,
+}
+
+func removeNS(xsdType string) string {
+	// Handles name space, ie. xsd:string, xs:string
+	r := strings.Split(xsdType, ":")
+
+	if len(r) == 2 {
+		return r[1]
+	}
+
+	return r[0]
 }

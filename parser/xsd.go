@@ -44,6 +44,9 @@ type xsdElement struct {
 	Groups      []xsdGroup      `xml:"group"`
 }
 
+// UnmarshalXML satisfies the XML Unmarshaler interface.
+// Populates xsdElement based on xml data, except when contains a complexType and it is empty.
+// Definition of complexType empty is defined by a complexType.isEmpty method.
 func (x *xsdElement) UnmarshalXML(d *xml.Decoder, s xml.StartElement) error {
 	// xsdComplexTypeAlias is used to disconnect struct methods and prevent potential loop.
 	type xsdElementAlias xsdElement

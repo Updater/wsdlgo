@@ -41,7 +41,7 @@ func (g *generator) Write(w io.Writer) error {
 }
 
 func (g *generator) populateContent() error {
-	funcMap := template.FuncMap{
+	f := template.FuncMap{
 		"toGoType":             toGoType,
 		"toGoPointerType":      toGoPointerType,
 		"replaceReservedWords": replaceReservedWords,
@@ -52,38 +52,17 @@ func (g *generator) populateContent() error {
 		"removeNS":             removeNS,
 	}
 
-	tb, err := template.New("types").Funcs(funcMap).Parse(baseTmpl)
-	if err != nil {
-		return err
-	}
-
-	tc, err := template.Must(tb.Clone()).Funcs(funcMap).Parse(constTmpl)
-	if err != nil {
-		return err
-	}
-
-	tm, err := template.Must(tc.Clone()).Funcs(funcMap).Parse(elementsTmpl)
-	if err != nil {
-		return err
-	}
-
-	ta, err := template.Must(tm.Clone()).Funcs(funcMap).Parse(attributesTmpl)
-	if err != nil {
-		return err
-	}
-
-	tt, err := template.Must(ta.Clone()).Funcs(funcMap).Parse(simpleTypesTmpl)
-	if err != nil {
-		return err
-	}
-
-	tx, err := template.Must(tt.Clone()).Funcs(funcMap).Parse(complexTypesTmpl)
-	if err != nil {
-		return err
+	t := template.New("types")
+	for _, v := range []string{baseTmpl, constTmpl, elementsTmpl, attributesTmpl, simpleTypesTmpl, complexTypesTmpl} {
+		var err error
+		t, err = template.Must(t.Clone()).Funcs(f).Parse(v)
+		if err != nil {
+			return err
+		}
 	}
 
 	d := new(bytes.Buffer)
-	err = tx.Execute(d, g)
+	err := t.Execute(d, g)
 	if err != nil {
 		return err
 	}

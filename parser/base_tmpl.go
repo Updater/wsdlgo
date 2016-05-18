@@ -29,37 +29,30 @@ var _ xml.Name
 		{{end}})
 	{{end}}
 
-	{{range .ComplexTypes}}
-		{{/* ComplexTypeGlobal */}}
-		{{$name := replaceReservedWords .Name | makeUnexported}}
-		type {{$name}} struct {
-			{{if ne .ComplexContent.Extension.Base ""}}
-				{{template "ComplexContent" .ComplexContent}}
-			{{else if ne .SimpleContent.Extension.Base ""}}
-				{{template "SimpleContent" .SimpleContent}}
-			{{else}}
-				{{template "Elements" .Sequence}}
-				{{template "Elements" .Choice}}
-				{{template "Elements" .SequenceChoice}}
-				{{template "Elements" .All}}
-				{{template "Attributes" .Attributes}}
-			{{end}}
-		}
-	{{end}}
-
-	{{range .Elements}}
-		{{if not .Type}}
-			{{/* ComplexTypeLocal */}}
-			{{$name := .Name}}
-			{{with .ComplexType}}
-				type {{$name | replaceReservedWords}} struct {
+	{{with .ComplexTypes}}
+		{{range .}}
+			{{/* ComplexTypeGlobal */}}
+			{{$name := replaceReservedWords .Name | makeUnexported}}
+			type {{$name}} struct {
+				{{if ne .ComplexContent.Extension.Base ""}}
+					{{template "ComplexContent" .ComplexContent}}
+				{{else if ne .SimpleContent.Extension.Base ""}}
+					{{template "SimpleContent" .SimpleContent}}
+				{{else}}
 					{{template "Elements" .Sequence}}
 					{{template "Elements" .Choice}}
 					{{template "Elements" .SequenceChoice}}
 					{{template "Elements" .All}}
 					{{template "Attributes" .Attributes}}
-				}
-			{{end}}
+				{{end}}
+			}
+		{{end}}
+	{{end}}
+	
+	{{range .Elements}}
+		{{if not .Type}}
+			{{template "ComplexTypeNested" .}}
+			{{template "ComplexTypeElements" .}}
 		{{end}}
 	{{end}}
 

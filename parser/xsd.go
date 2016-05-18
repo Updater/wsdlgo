@@ -1,8 +1,6 @@
 package parser
 
-import (
-	"encoding/xml"
-)
+import "encoding/xml"
 
 // xsdSchema represents an entire Schema structure.
 type xsdSchema struct {
@@ -46,6 +44,23 @@ type xsdElement struct {
 	Groups      []xsdGroup      `xml:"group"`
 }
 
+func (x *xsdElement) UnmarshalXML(d *xml.Decoder, s xml.StartElement) error {
+	// xsdComplexTypeAlias is used to disconnect struct methods and prevent potential loop.
+	type xsdElementAlias xsdElement
+	v := xsdElementAlias(*x)
+
+	if err := d.DecodeElement(&v, &s); err != nil {
+		return err
+	}
+
+	if v.ComplexType != nil && v.ComplexType.isEmpty() {
+		return nil
+	}
+
+	*x = xsdElement(v)
+	return nil
+}
+
 // xsdComplexType represents a Schema complex type.
 type xsdComplexType struct {
 	XMLName        xml.Name          `xml:"complexType"`
@@ -58,7 +73,19 @@ type xsdComplexType struct {
 	All            []xsdElement      `xml:"all>element"`
 	ComplexContent xsdComplexContent `xml:"complexContent"`
 	SimpleContent  xsdSimpleContent  `xml:"simpleContent"`
-	Attributes     []*xsdAttribute   `xml:"attribute"`
+	Attributes     []xsdAttribute    `xml:"attribute"`
+}
+
+func (x xsdComplexType) hasElement() bool {
+	return (len(x.Sequence) + len(x.Choice) + len(x.SequenceChoice) + len(x.All)) > 0
+}
+
+func (x xsdComplexType) hasAttribute() bool {
+	return len(x.Attributes) > 0
+}
+
+func (x xsdComplexType) isEmpty() bool {
+	return !(x.hasElement() || x.hasAttribute())
 }
 
 // xsdGroup element is used to define a group of elements to be used in complex type definitions.

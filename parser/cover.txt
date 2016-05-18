@@ -1,0 +1,20 @@
+Tested On 05/18/16 12:33:40 PM EDT
+
+github.com/Bridgevine/wsdlgo/parser/generator.go:29:	Write			57.1%
+github.com/Bridgevine/wsdlgo/parser/generator.go:43:	populateContent		84.6%
+github.com/Bridgevine/wsdlgo/parser/generator.go:74:	parse			71.4%
+github.com/Bridgevine/wsdlgo/parser/generator.go:89:	NewGenerator		83.3%
+github.com/Bridgevine/wsdlgo/parser/generator.go:104:	makeUnexported		80.0%
+github.com/Bridgevine/wsdlgo/parser/generator.go:114:	makeExported		80.0%
+github.com/Bridgevine/wsdlgo/parser/generator.go:154:	normalize		100.0%
+github.com/Bridgevine/wsdlgo/parser/generator.go:165:	capitalizeMultipleWord	100.0%
+github.com/Bridgevine/wsdlgo/parser/generator.go:182:	replaceReservedWords	80.0%
+github.com/Bridgevine/wsdlgo/parser/generator.go:216:	toGoType		100.0%
+github.com/Bridgevine/wsdlgo/parser/generator.go:233:	toGoPointerType		75.0%
+github.com/Bridgevine/wsdlgo/parser/generator.go:243:	lint			100.0%
+github.com/Bridgevine/wsdlgo/parser/generator.go:296:	removeNS		0.0%
+github.com/Bridgevine/wsdlgo/parser/xsd.go:47:		UnmarshalXML		87.5%
+github.com/Bridgevine/wsdlgo/parser/xsd.go:79:		hasElement		100.0%
+github.com/Bridgevine/wsdlgo/parser/xsd.go:83:		hasAttribute		100.0%
+github.com/Bridgevine/wsdlgo/parser/xsd.go:87:		isEmpty			100.0%
+total:							(statements)		81.7%

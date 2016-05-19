@@ -27,6 +27,10 @@ func TestGenerator(t *testing.T) {
 			wf: "testdata/complexTypeEmpty.wsdl",
 			pf: "testdata/complexTypeEmpty.go",
 		},
+		{
+			wf: "testdata/complexType.wsdl",
+			pf: "testdata/complexType.go",
+		},
 	}
 
 	for index, tt := range tests {

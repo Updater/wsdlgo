@@ -42,12 +42,15 @@ type xsdElement struct {
 	ComplexType *xsdComplexType `xml:"complexType"` //local
 	SimpleType  *xsdSimpleType  `xml:"simpleType"`
 	Groups      []xsdGroup      `xml:"group"`
+
+	NameReqNil string
 }
 
 // UnmarshalXML satisfies the XML Unmarshaler interface.
 // Populates xsdElement based on xml data, except when contains a complexType and it is empty.
 // Definition of complexType empty is defined by a complexType.isEmpty method.
 func (x *xsdElement) UnmarshalXML(d *xml.Decoder, s xml.StartElement) error {
+	const reqNil = "ReqNil"
 	// xsdComplexTypeAlias is used to disconnect struct methods and prevent potential loop.
 	type xsdElementAlias xsdElement
 	v := xsdElementAlias(*x)
@@ -58,6 +61,10 @@ func (x *xsdElement) UnmarshalXML(d *xml.Decoder, s xml.StartElement) error {
 
 	if v.ComplexType != nil && v.ComplexType.isEmpty() {
 		return nil
+	}
+
+	if v.Nillable && !(v.MinOccurs == "0") {
+		v.NameReqNil = makeUnexported(removeNS(v.Type + reqNil))
 	}
 
 	*x = xsdElement(v)

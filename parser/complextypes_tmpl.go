@@ -33,4 +33,15 @@ const complexTypesTmpl = `
 			{{end}}
 		}
 	{{end}}
+{{end}}
+
+{{define "ComplexTypeNillableRequiredElements"}}
+	{{if .Name}}
+		{{with .ComplexType}}
+			{{template "NillableRequiredTypes" .Sequence}}
+			{{template "NillableRequiredTypes" .Choice}}
+			{{template "NillableRequiredTypes" .SequenceChoice}}
+			{{template "NillableRequiredTypes" .All}}
+		{{end}}
+	{{end}}
 {{end}}`

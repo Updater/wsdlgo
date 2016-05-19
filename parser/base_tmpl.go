@@ -52,6 +52,7 @@ var _ xml.Name
 	{{range .Elements}}
 		{{if not .Type}}
 			{{template "ComplexTypeNested" .}}
+			{{template "ComplexTypeNillableRequiredElements" .}}
 			{{template "ComplexTypeElements" .}}
 		{{end}}
 	{{end}}

@@ -50,6 +50,7 @@ func (g *generator) populateContent() error {
 		"normalize":            normalize,
 		"lint":                 lint,
 		"removeNS":             removeNS,
+		"removePackage":        removePackage,
 	}
 
 	t := template.New("types")
@@ -293,9 +294,19 @@ var commonInitialisms = map[string]bool{
 	"XSS":   true,
 }
 
-func removeNS(xsdType string) string {
+func removeNS(s string) string {
 	// Handles name space, ie. xsd:string, xs:string
-	r := strings.Split(xsdType, ":")
+	r := strings.Split(s, ":")
+
+	if len(r) == 2 {
+		return r[1]
+	}
+
+	return r[0]
+}
+
+func removePackage(s string) string {
+	r := strings.Split(s, ".")
 
 	if len(r) == 2 {
 		return r[1]

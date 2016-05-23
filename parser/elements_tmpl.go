@@ -33,24 +33,26 @@ const elementsTmpl = `
 {{define "NillableRequiredTypes"}}
 	{{range .}}
 		{{if .NameReqNil}}
-			type {{.NameReqNil}} struct {
-				{{.Type | toGoPointerType}}
-			}
-
-			// MarshalXML satisfies the XML Marshaler interface for type {{.NameReqNil}}.
-			func (t {{.NameReqNil}}) MarshalXML(e *xml.Encoder, s xml.StartElement) error { {{$type := .Type | removeNS | toGoType | removePackage}}
-				if t.{{$type}} == nil {
-					return e.EncodeElement("", s)
+			{{if eq .TypeReqNilExists false}}
+				type {{.NameReqNil}} struct {
+					{{.Type | toGoPointerType}}
 				}
 
-				{{if eq $type "Time"}}
-					tt := time.Time(*t.Time)
-					if tt.IsZero() {
+				// MarshalXML satisfies the XML Marshaler interface for type {{.NameReqNil}}.
+				func (t {{.NameReqNil}}) MarshalXML(e *xml.Encoder, s xml.StartElement) error { {{$type := .Type | removeNS | toGoType | removePackage}}
+					if t.{{$type}} == nil {
 						return e.EncodeElement("", s)
 					}
-				{{end}}
-				return e.EncodeElement(t, s)
-			}
+
+					{{if eq $type "Time"}}
+						tt := time.Time(*t.Time)
+						if tt.IsZero() {
+							return e.EncodeElement("", s)
+						}
+					{{end}}
+					return e.EncodeElement(t, s)
+				}
+			{{end}}
 		{{end}}
 	{{end}}
 {{end}}`

@@ -11,6 +11,14 @@ import (
 var _ time.Time
 var _ xml.Name
 
+type serviceProductType struct {
+	ServiceProducts *arrayOfProducts `xml:"ServiceProducts"`
+}
+
+type arrayOfProducts struct {
+	Product []string `xml:"Product"`
+}
+
 type intReqNil struct {
 	*int32
 }
@@ -56,11 +64,12 @@ func (t dateTimeReqNil) MarshalXML(e *xml.Encoder, s xml.StartElement) error {
 }
 
 type myelements struct {
-	Nonboth      *string        `xml:"nonboth"`
-	Minzero      *int32         `xml:"minzero"`
-	Nilint       intReqNil      `xml:"nilint"`
-	Nilstring    stringReqNil   `xml:"nilstring"`
-	Minzeronil   *string        `xml:"minzeronil"`
-	DateOfBirth1 dateTimeReqNil `xml:"DateOfBirth1"`
-	DateOfBirth2 dateTimeReqNil `xml:"DateOfBirth2"`
+	Nonboth         *string          `xml:"nonboth"`
+	Minzero         *int32           `xml:"minzero"`
+	Nilint          intReqNil        `xml:"nilint"`
+	Nilstring       stringReqNil     `xml:"nilstring"`
+	Minzeronil      *string          `xml:"minzeronil"`
+	DateOfBirth1    dateTimeReqNil   `xml:"DateOfBirth1"`
+	DateOfBirth2    dateTimeReqNil   `xml:"DateOfBirth2"`
+	ServiceProducts *arrayOfProducts `xml:"ServiceProducts"`
 }

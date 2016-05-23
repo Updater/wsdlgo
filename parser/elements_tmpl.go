@@ -1,7 +1,7 @@
 package parser
 
 const elementsTmpl = `
-{{define "ElementsRegular"}}{{replaceReservedWords .Name | makeExported}} {{if eq .MaxOccurs "unbounded"}}[]{{.Type | toGoType}}{{else}}{{.Type | toGoPointerType}}{{end}} ` + "`" + `xml:"{{.Name}}"` + "`" + `{{end}}
+{{define "ElementsRegular"}}{{replaceReservedWords .Name | makeExported}}{{$type := .Type | makeUnexported}} {{if eq .MaxOccurs "unbounded"}}[]{{$type | toGoType}}{{else}}{{$type | makeUnexported | toGoPointerType}}{{end}} ` + "`" + `xml:"{{.Name}}"` + "`" + `{{end}}
 
 {{define "ElementsReqNil"}}{{replaceReservedWords .Name | makeExported}} {{.NameReqNil | toGoType}} ` + "`" + `xml:"{{.Name}}"` + "`" + `{{end}}
 

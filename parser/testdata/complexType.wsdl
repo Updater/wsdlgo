@@ -1,11 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<definitions name = "emptycomplextype"
-    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-    targetNamespace="urn:jp.gr.jin.rrr.example.emptycomplextype"
+<definitions name = "emptycomplextype" 
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="urn:jp.gr.jin.rrr.example.emptycomplextype" 
     xmlns="http://schemas.xmlsoap.org/wsdl/">
     <types>
-        <xsd:schema elementFormDefault="qualified"
-	targetNamespace="urn:jp.gr.jin.rrr.example.emptycomplextype">
+        <xsd:schema elementFormDefault="qualified" targetNamespace="urn:jp.gr.jin.rrr.example.emptycomplextype">
             <xs:element name="myelements">
                 <xs:complexType>
                     <xs:sequence>
@@ -14,10 +12,22 @@
                         <xs:element name="nilint" nillable="true" type="xs:int"/>
                         <xs:element name="nilstring" nillable="true" type="xs:string"/>
                         <xs:element minOccurs="0" name="minzeronil" nillable="true" type="xs:string"/>
-                        <xs:element minOccurs="1" maxOccurs="1" name="DateOfBirth" nillable="true" type="xs:dateTime" />
+                        <xs:element maxOccurs="1" name="DateOfBirth1" nillable="true" type="xs:dateTime" />
+                        <xs:element minOccurs="1" maxOccurs="1" name="DateOfBirth2" nillable="true" type="xs:dateTime" />
+                        <xsd:element maxOccurs="1" name="ServiceProducts" type="ArrayOfProducts" minOccurs="0"></xsd:element>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
+            <xs:complexType name="ServiceProductType">>
+                <xs:sequence>
+                    <xsd:element maxOccurs="1" name="ServiceProducts" type="ArrayOfProducts" minOccurs="0"></xsd:element>
+                </xs:sequence>
+            </xs:complexType>
+            <xsd:complexType name="ArrayOfProducts">
+                <xsd:sequence>
+                    <xsd:element maxOccurs="unbounded" name="Product" type="xsd:string" minOccurs="0"></xsd:element>
+                </xsd:sequence>
+            </xsd:complexType>
         </xsd:schema>
     </types>
 </definitions>

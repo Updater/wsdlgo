@@ -2,6 +2,33 @@ package parser
 
 import "encoding/xml"
 
+// stringInSlice is a helper set function for slice of strings.
+func stringInSlice(s string, l []string) bool {
+	for _, v := range l {
+		if v == s {
+			return true
+		}
+	}
+
+	return false
+}
+
+// updateTypeReqNilExists is a helper function which updates TypeReqNilExists after unmarshalling.
+func updateTypeReqNilExists(e []xsdElement, l []string) {
+	for s := 0; s < len(e); s++ {
+		if e[s].NameReqNil == "" {
+			continue
+		}
+
+		if !stringInSlice(e[s].NameReqNil, l) {
+			l = append(l, e[s].NameReqNil)
+			continue
+		}
+
+		e[s].TypeReqNilExists = true
+	}
+}
+
 // xsdSchema represents an entire Schema structure.
 type xsdSchema struct {
 	XMLName            xml.Name         `xml:"schema"`
@@ -15,6 +42,31 @@ type xsdSchema struct {
 	Elements           []xsdElement     `xml:"element"`
 	ComplexTypes       []xsdComplexType `xml:"complexType"` //global
 	SimpleType         []xsdSimpleType  `xml:"simpleType"`
+}
+
+// UnmarshalXML satisfies the XML Unmarshaler interface.
+// Populates xsdSchema based on xml data.
+func (x *xsdSchema) UnmarshalXML(d *xml.Decoder, s xml.StartElement) error {
+	// xsdSchemaAlias is used to disconnect struct methods and prevent potential loop.
+	type xsdSchemaAlias xsdSchema
+	v := xsdSchemaAlias(*x)
+
+	if err := d.DecodeElement(&v, &s); err != nil {
+		return err
+	}
+
+	l := make([]string, len(v.Elements))
+	for e := 0; e < len(v.Elements); e++ {
+		if v.Elements[e].ComplexType != nil {
+			updateTypeReqNilExists(v.Elements[e].ComplexType.Sequence, l)
+			updateTypeReqNilExists(v.Elements[e].ComplexType.Choice, l)
+			updateTypeReqNilExists(v.Elements[e].ComplexType.SequenceChoice, l)
+			updateTypeReqNilExists(v.Elements[e].ComplexType.All, l)
+		}
+	}
+
+	*x = xsdSchema(v)
+	return nil
 }
 
 // xsdInclude represents schema includes.
@@ -43,7 +95,8 @@ type xsdElement struct {
 	SimpleType  *xsdSimpleType  `xml:"simpleType"`
 	Groups      []xsdGroup      `xml:"group"`
 
-	NameReqNil string
+	NameReqNil       string
+	TypeReqNilExists bool
 }
 
 // UnmarshalXML satisfies the XML Unmarshaler interface.

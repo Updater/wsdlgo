@@ -16,13 +16,16 @@ func stringInSlice(s string, l []string) bool {
 // updateTypeReqNilExists is a helper function which updates TypeReqNilExists after unmarshalling.
 func updateTypeReqNilExists(e []xsdElement, l []string) {
 	for s := 0; s < len(e); s++ {
-		if e[s].NameReqNil != "" {
-			if !stringInSlice(e[s].NameReqNil, l) {
-				l = append(l, e[s].NameReqNil)
-			} else {
-				e[s].TypeReqNilExists = true
-			}
+		if e[s].NameReqNil == "" {
+			continue
 		}
+
+		if !stringInSlice(e[s].NameReqNil, l) {
+			l = append(l, e[s].NameReqNil)
+			continue
+		}
+
+		e[s].TypeReqNilExists = true
 	}
 }
 

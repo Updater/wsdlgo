@@ -1,4 +1,4 @@
-Tested On 05/23/16 12:58:36 PM EDT
+Tested On 05/24/16 06:34:44 AM EDT
 
 github.com/Bridgevine/wsdlgo/parser/generator.go:29:	Write			57.1%
 github.com/Bridgevine/wsdlgo/parser/generator.go:43:	populateContent		84.6%
@@ -16,9 +16,9 @@ github.com/Bridgevine/wsdlgo/parser/generator.go:297:	removeNS		75.0%
 github.com/Bridgevine/wsdlgo/parser/generator.go:308:	removePackage		100.0%
 github.com/Bridgevine/wsdlgo/parser/xsd.go:6:		stringInSlice		100.0%
 github.com/Bridgevine/wsdlgo/parser/xsd.go:17:		updateTypeReqNilExists	100.0%
-github.com/Bridgevine/wsdlgo/parser/xsd.go:46:		UnmarshalXML		92.3%
-github.com/Bridgevine/wsdlgo/parser/xsd.go:102:		UnmarshalXML		90.9%
-github.com/Bridgevine/wsdlgo/parser/xsd.go:139:		hasElement		100.0%
-github.com/Bridgevine/wsdlgo/parser/xsd.go:143:		hasAttribute		100.0%
-github.com/Bridgevine/wsdlgo/parser/xsd.go:147:		isEmpty			100.0%
-total:							(statements)		87.7%
+github.com/Bridgevine/wsdlgo/parser/xsd.go:49:		UnmarshalXML		92.3%
+github.com/Bridgevine/wsdlgo/parser/xsd.go:105:		UnmarshalXML		90.9%
+github.com/Bridgevine/wsdlgo/parser/xsd.go:142:		hasElement		100.0%
+github.com/Bridgevine/wsdlgo/parser/xsd.go:146:		hasAttribute		100.0%
+github.com/Bridgevine/wsdlgo/parser/xsd.go:150:		isEmpty			100.0%
+total:							(statements)		87.9%

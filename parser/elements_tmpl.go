@@ -1,11 +1,11 @@
 package parser
 
 const elementsTmpl = `
-{{define "ElementsRegular"}}{{replaceReservedWords .Name | makeExported}}{{$type := .Type | makeUnexported}} {{if eq .MaxOccurs "unbounded"}}[]{{$type | toGoType}}{{else}}{{$type | makeUnexported | toGoPointerType}}{{end}} ` + "`" + `xml:"{{.Name}}"` + "`" + `{{end}}
+{{define "ElementsRegular"}}{{replaceReservedWords .Name | makeExported}}{{$type := .Type | makeUnexported}} {{if eq .MaxOccurs "unbounded"}}[]{{$type | removeNS | toGoType}}{{else}}{{$type | removeNS | makeUnexported | toGoPointerType}}{{end}} ` + "`" + `xml:"{{.Name}}"` + "`" + `{{end}}
 
-{{define "ElementsReqNil"}}{{replaceReservedWords .Name | makeExported}} {{.NameReqNil | toGoType}} ` + "`" + `xml:"{{.Name}}"` + "`" + `{{end}}
+{{define "ElementsReqNil"}}{{replaceReservedWords .Name | makeExported}} {{.NameReqNil | removeNS | toGoType}} ` + "`" + `xml:"{{.Name}}"` + "`" + `{{end}}
 
-{{define "ElementsInner"}}{{if .Name}}{{$type := replaceReservedWords .Name | makeUnexported}} {{$type | toGoPointerType}}Inner {{end}}{{end}}
+{{define "ElementsInner"}}{{if .Name}}{{$type := replaceReservedWords .Name | makeUnexported}} {{$type | removeNS | toGoPointerType}}Inner {{end}}{{end}}
 
 {{define "Elements"}}
 	{{range .}}
@@ -35,7 +35,7 @@ const elementsTmpl = `
 		{{if .NameReqNil}}
 			{{if eq .TypeReqNilExists false}}
 				type {{.NameReqNil}} struct {
-					{{.Type | toGoPointerType}}
+					{{.Type | removeNS | toGoPointerType}}
 				}
 
 				// MarshalXML satisfies the XML Marshaler interface for type {{.NameReqNil}}.
@@ -54,5 +54,13 @@ const elementsTmpl = `
 				}
 			{{end}}
 		{{end}}
+	{{end}}
+{{end}}
+
+{{define "SimpleTypeElements"}}
+	{{if .Name}}
+		type {{replaceReservedWords .Name | makeUnexported}} struct {
+			{{template "ElementsRegular" .}}
+		}
 	{{end}}
 {{end}}`

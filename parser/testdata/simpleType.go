@@ -29,3 +29,7 @@ type ruby struct {
 	Myversion *myversion `xml:"myversion"`
 	Date      *time.Time `xml:"date"`
 }
+
+type myid struct {
+	Myid *iD `xml:"myid"`
+}

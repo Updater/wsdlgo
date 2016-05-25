@@ -13,10 +13,22 @@ var _ xml.Name
 
 type serviceProductType struct {
 	ServiceProducts *arrayOfProducts `xml:"ServiceProducts"`
+	Version         stringReqNil     `xml:"Version"`
 }
 
 type arrayOfProducts struct {
 	Product []string `xml:"Product"`
+}
+
+type serviceProductTypeExt struct {
+	*serviceProductType
+
+	Nonboth *string `xml:"nonboth"`
+}
+
+type pingResponseType struct {
+	TransactionId *string      `xml:"TransactionId"`
+	Version       stringReqNil `xml:"Version"`
 }
 
 type intReqNil struct {

@@ -2,26 +2,15 @@ package parser
 
 import "encoding/xml"
 
-// stringInSlice is a helper set function for slice of strings.
-func stringInSlice(s string, l []string) bool {
-	for _, v := range l {
-		if v == s {
-			return true
-		}
-	}
-
-	return false
-}
-
 // updateTypeReqNilExists is a helper function which updates TypeReqNilExists after unmarshalling.
-func updateTypeReqNilExists(e []xsdElement, l []string) {
+func updateTypeReqNilExists(e []xsdElement, m map[string]bool) {
 	for s := 0; s < len(e); s++ {
 		if e[s].NameReqNil == "" {
 			continue
 		}
 
-		if !stringInSlice(e[s].NameReqNil, l) {
-			l = append(l, e[s].NameReqNil)
+		if _, ok := m[e[s].NameReqNil]; !ok {
+			m[e[s].NameReqNil] = true
 			continue
 		}
 
@@ -55,14 +44,22 @@ func (x *xsdSchema) UnmarshalXML(d *xml.Decoder, s xml.StartElement) error {
 		return err
 	}
 
-	l := make([]string, len(v.Elements))
+	m := make(map[string]bool)
+
 	for e := 0; e < len(v.Elements); e++ {
 		if v.Elements[e].ComplexType != nil {
-			updateTypeReqNilExists(v.Elements[e].ComplexType.Sequence, l)
-			updateTypeReqNilExists(v.Elements[e].ComplexType.Choice, l)
-			updateTypeReqNilExists(v.Elements[e].ComplexType.SequenceChoice, l)
-			updateTypeReqNilExists(v.Elements[e].ComplexType.All, l)
+			updateTypeReqNilExists(v.Elements[e].ComplexType.Sequence, m)
+			updateTypeReqNilExists(v.Elements[e].ComplexType.Choice, m)
+			updateTypeReqNilExists(v.Elements[e].ComplexType.SequenceChoice, m)
+			updateTypeReqNilExists(v.Elements[e].ComplexType.All, m)
 		}
+	}
+
+	for e := 0; e < len(v.ComplexTypes); e++ {
+		updateTypeReqNilExists(v.ComplexTypes[e].Sequence, m)
+		updateTypeReqNilExists(v.ComplexTypes[e].Choice, m)
+		updateTypeReqNilExists(v.ComplexTypes[e].SequenceChoice, m)
+		updateTypeReqNilExists(v.ComplexTypes[e].All, m)
 	}
 
 	*x = xsdSchema(v)

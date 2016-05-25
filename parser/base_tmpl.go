@@ -31,6 +31,15 @@ var _ xml.Name
 
 	{{with .ComplexTypes}}
 		{{range .}}
+			{{template "NillableRequiredTypes" .Sequence}}
+			{{template "NillableRequiredTypes" .Choice}}
+			{{template "NillableRequiredTypes" .SequenceChoice}}
+			{{template "NillableRequiredTypes" .All}}
+		{{end}}
+	{{end}}
+
+	{{with .ComplexTypes}}
+		{{range .}}
 			{{/* ComplexTypeGlobal */}}
 			{{$name := replaceReservedWords .Name | makeUnexported}}
 			type {{$name}} struct {

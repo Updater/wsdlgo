@@ -30,6 +30,8 @@ type ruby struct {
 	Date      *time.Time `xml:"date"`
 }
 
-type myid struct {
-	Myid *iD `xml:"myid"`
+type pingIdIn struct {
+	XMLName xml.Name `xml:"http://www.test.com/test/ ping_id_in"`
+
+	*iD
 }

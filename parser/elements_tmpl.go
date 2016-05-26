@@ -55,12 +55,4 @@ const elementsTmpl = `
 			{{end}}
 		{{end}}
 	{{end}}
-{{end}}
-
-{{define "SimpleTypeElements"}}
-	{{if .Name}}
-		type {{replaceReservedWords .Name | makeUnexported}} struct {
-			{{template "ElementsRegular" .}}
-		}
-	{{end}}
 {{end}}`

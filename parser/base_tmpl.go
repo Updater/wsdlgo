@@ -20,7 +20,7 @@ var _ xml.Name
 	{{with .SimpleType}}
 		// Definition of simple types
 		type (
-			{{range .}}	{{template "SimpleType" .}}
+			{{range .}}	{{template "SimpleTypeBase" .}}
 		{{end}})
 
 		// Constants associated with simple types defined above
@@ -64,7 +64,7 @@ var _ xml.Name
 			{{template "ComplexTypeNillableRequiredElements" .}}
 			{{template "ComplexTypeElements" .}}
 		{{else}}
-			{{template "SimpleTypeElements" .}}
+			{{template "SimpleType" .}}
 		{{end}}
 	{{end}}
 

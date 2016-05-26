@@ -1,8 +1,34 @@
 package parser
 
+import (
+	"encoding/xml"
+	"strings"
+)
+
+// resolveXMLTag is a helper function to solve the proper XML Name tag based for element.
+func resolveXMLTag(s string, x string) string {
+	r := strings.Split(s, ":")
+	if len(r) != 2 {
+		return r[len(r)-1]
+	}
+
+	rs := r[1]
+	if x == "" {
+		return rs
+	}
+
+	switch r[0] {
+	case "partns":
+		rs = x + " " + rs
+	}
+
+	return rs
+}
+
 // wsdl represents the global structure of a wsdl file.
 type wsdl struct {
 	Name            string         `xml:"name,attr"`
+	TNS             string         `xml:"tns,attr"`
 	TargetNamespace string         `xml:"targetNamespace,attr"`
 	Imports         []wsdlImport   `xml:"import"`
 	Doc             string         `xml:"documentation"`
@@ -11,6 +37,33 @@ type wsdl struct {
 	PortTypes       []wsdlPortType `xml:"http://schemas.xmlsoap.org/wsdl/ portType"`
 	Binding         []wsdlBinding  `xml:"http://schemas.xmlsoap.org/wsdl/ binding"`
 	Service         []wsdlService  `xml:"http://schemas.xmlsoap.org/wsdl/ service"`
+}
+
+// UnmarshalXML satisfies the XML Unmarshaler interface.
+// Populates wsdl based on xml data.
+func (w *wsdl) UnmarshalXML(d *xml.Decoder, s xml.StartElement) error {
+	// wsdlAlias is used to disconnect struct methods and prevent potential loop.
+	type wsdlAlias wsdl
+	v := wsdlAlias(*w)
+
+	if err := d.DecodeElement(&v, &s); err != nil {
+		return err
+	}
+
+	for _, m := range v.Messages {
+		for _, p := range m.Parts {
+			for s := 0; s < len(v.Types.Schemas); s++ {
+				for e := 0; e < len(v.Types.Schemas[s].Elements); e++ {
+					if strings.HasSuffix(p.Element, v.Types.Schemas[s].Elements[e].Name) {
+						v.Types.Schemas[s].Elements[e].XMLTag = resolveXMLTag(p.Element, p.Partns)
+					}
+				}
+			}
+		}
+	}
+
+	*w = wsdl(v)
+	return nil
 }
 
 // wsdlImport is the struct used for deserializing wsdl imports.
@@ -30,6 +83,7 @@ type wsdlPart struct {
 	Name    string `xml:"name,attr"`
 	Element string `xml:"element,attr"`
 	Type    string `xml:"type,attr"`
+	Partns  string `xml:"partns,attr"`
 }
 
 // wsdlMessage represents a function, which in turn has one or more parameters.

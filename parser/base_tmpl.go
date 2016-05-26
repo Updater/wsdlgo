@@ -5,14 +5,12 @@ const baseTmpl = `
 
 package {{.Name}}
 
-import (
-	"encoding/xml"
-	"time"
-)
-
-// against "unused imports"
-var _ time.Time
-var _ xml.Name
+{{with .WSDL.PackageImport}}
+	import (
+		{{range $i, $e := .}}"{{$i}}"
+		{{end}}
+	)
+{{end}}
 
 {{range .WSDL.Types.Schemas}}
 	{{ $targetNamespace := .TargetNamespace }}

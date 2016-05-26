@@ -94,6 +94,7 @@ type xsdElement struct {
 
 	NameReqNil       string
 	TypeReqNilExists bool
+	XMLTag           string
 }
 
 // UnmarshalXML satisfies the XML Unmarshaler interface.

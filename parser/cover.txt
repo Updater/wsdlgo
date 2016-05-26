@@ -1,4 +1,4 @@
-Tested On 05/24/16 04:56:44 PM EDT
+Tested On 05/26/16 09:15:16 AM EDT
 
 github.com/Bridgevine/wsdlgo/parser/generator.go:29:	Write			57.1%
 github.com/Bridgevine/wsdlgo/parser/generator.go:43:	populateContent		84.6%
@@ -10,14 +10,16 @@ github.com/Bridgevine/wsdlgo/parser/generator.go:155:	normalize		100.0%
 github.com/Bridgevine/wsdlgo/parser/generator.go:166:	capitalizeMultipleWord	100.0%
 github.com/Bridgevine/wsdlgo/parser/generator.go:183:	replaceReservedWords	80.0%
 github.com/Bridgevine/wsdlgo/parser/generator.go:217:	toGoType		100.0%
-github.com/Bridgevine/wsdlgo/parser/generator.go:234:	toGoPointerType		75.0%
-github.com/Bridgevine/wsdlgo/parser/generator.go:244:	lint			100.0%
-github.com/Bridgevine/wsdlgo/parser/generator.go:297:	removeNS		75.0%
-github.com/Bridgevine/wsdlgo/parser/generator.go:308:	removePackage		100.0%
+github.com/Bridgevine/wsdlgo/parser/generator.go:226:	toGoPointerType		75.0%
+github.com/Bridgevine/wsdlgo/parser/generator.go:236:	lint			100.0%
+github.com/Bridgevine/wsdlgo/parser/generator.go:289:	removeNS		100.0%
+github.com/Bridgevine/wsdlgo/parser/generator.go:300:	removePackage		100.0%
+github.com/Bridgevine/wsdlgo/parser/wsdl.go:9:		resolveXMLTag		88.9%
+github.com/Bridgevine/wsdlgo/parser/wsdl.go:44:		UnmarshalXML		91.7%
 github.com/Bridgevine/wsdlgo/parser/xsd.go:6:		updateTypeReqNilExists	100.0%
 github.com/Bridgevine/wsdlgo/parser/xsd.go:38:		UnmarshalXML		94.4%
-github.com/Bridgevine/wsdlgo/parser/xsd.go:102:		UnmarshalXML		90.9%
-github.com/Bridgevine/wsdlgo/parser/xsd.go:139:		hasElement		100.0%
-github.com/Bridgevine/wsdlgo/parser/xsd.go:143:		hasAttribute		100.0%
-github.com/Bridgevine/wsdlgo/parser/xsd.go:147:		isEmpty			100.0%
-total:							(statements)		88.0%
+github.com/Bridgevine/wsdlgo/parser/xsd.go:103:		UnmarshalXML		90.9%
+github.com/Bridgevine/wsdlgo/parser/xsd.go:140:		hasElement		100.0%
+github.com/Bridgevine/wsdlgo/parser/xsd.go:144:		hasAttribute		100.0%
+github.com/Bridgevine/wsdlgo/parser/xsd.go:148:		isEmpty			100.0%
+total:							(statements)		88.7%

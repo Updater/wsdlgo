@@ -25,7 +25,7 @@
         </xsd:restriction>
       </xsd:simpleType>
 
-      <xsd:element name="myid" type="tns:ID"/>
+      <xsd:element name="ping_id_in" type="tns:ID"/>
 
       <xsd:simpleType name="ID">
         <xsd:restriction base="xsd:string">
@@ -44,8 +44,8 @@
     <part name="parameters" type="xsd:string"/>
   </message>
 
-  <message name="ping_id_in">
-    <part name="parameters" element="tns:myid"/>
+  <message name="ping_id">
+    <part xmlns:partns="http://www.test.com/test/" name="parameters" element="partns:ping_id_in"/>
   </message>
 
   <message name="ping_id_out">

@@ -29,3 +29,9 @@ type ruby struct {
 	Myversion *myversion `xml:"myversion"`
 	Date      *time.Time `xml:"date"`
 }
+
+type pingIdIn struct {
+	XMLName xml.Name `xml:"http://www.test.com/test/ ping_id_in"`
+
+	*iD
+}

@@ -2,7 +2,7 @@ package parser
 
 const complexTypesTmpl = `
 {{define "ComplexContent"}}
-	{{$baseType := makeUnexported .Extension.Base | toGoPointerType}}
+	{{$baseType := makeUnexported .Extension.Base | removeNS | toGoPointerType}}
 	{{ if $baseType }}
 		{{$baseType}}
 	{{end}}

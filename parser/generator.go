@@ -215,20 +215,12 @@ var xsd2GoTypes = map[string]string{
 }
 
 func toGoType(s string) string {
-	// Handles name space, ie. xsd:string, xs:string
-	r := strings.Split(s, ":")
-
-	t := r[0]
-	if len(r) == 2 {
-		t = r[1]
-	}
-
-	v, ok := xsd2GoTypes[strings.ToLower(t)]
+	v, ok := xsd2GoTypes[strings.ToLower(s)]
 	if ok {
 		return v
 	}
 
-	return replaceReservedWords(t)
+	return replaceReservedWords(s)
 }
 
 func toGoPointerType(s string) string {

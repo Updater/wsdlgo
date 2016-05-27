@@ -7,10 +7,6 @@ import (
 	"time"
 )
 
-// against "unused imports"
-var _ time.Time
-var _ xml.Name
-
 type serviceProductType struct {
 	ServiceProducts *arrayOfProducts `xml:"ServiceProducts"`
 	Version         stringReqNil     `xml:"Version"`

@@ -6,15 +6,15 @@ import (
 )
 
 // resolveXMLTag is a helper function to solve the proper XML Name tag based for element.
-func resolveXMLTag(s string, x string) string {
+func resolveXMLTag(s string, x string) (string, bool) {
 	r := strings.Split(s, ":")
 	if len(r) != 2 {
-		return r[len(r)-1]
+		return r[len(r)-1], false
 	}
 
 	rs := r[1]
 	if x == "" {
-		return rs
+		return rs, false
 	}
 
 	switch r[0] {
@@ -22,7 +22,13 @@ func resolveXMLTag(s string, x string) string {
 		rs = x + " " + rs
 	}
 
-	return rs
+	return rs, true
+}
+
+func addPackageImport(s string, m map[string]bool) {
+	if _, ok := m[s]; !ok {
+		m[s] = true
+	}
 }
 
 // wsdl represents the global structure of a wsdl file.
@@ -37,6 +43,8 @@ type wsdl struct {
 	PortTypes       []wsdlPortType `xml:"http://schemas.xmlsoap.org/wsdl/ portType"`
 	Binding         []wsdlBinding  `xml:"http://schemas.xmlsoap.org/wsdl/ binding"`
 	Service         []wsdlService  `xml:"http://schemas.xmlsoap.org/wsdl/ service"`
+
+	PackageImport map[string]bool
 }
 
 // UnmarshalXML satisfies the XML Unmarshaler interface.
@@ -50,17 +58,66 @@ func (w *wsdl) UnmarshalXML(d *xml.Decoder, s xml.StartElement) error {
 		return err
 	}
 
+	v.PackageImport = make(map[string]bool)
+
+	var wp []*wsdlPart
 	for _, m := range v.Messages {
 		for _, p := range m.Parts {
-			for s := 0; s < len(v.Types.Schemas); s++ {
-				for e := 0; e < len(v.Types.Schemas[s].Elements); e++ {
-					if strings.HasSuffix(p.Element, v.Types.Schemas[s].Elements[e].Name) {
-						v.Types.Schemas[s].Elements[e].XMLTag = resolveXMLTag(p.Element, p.Partns)
+			wp = append(wp, p)
+		}
+	}
+
+	var xe []*xsdElement
+	var se []*xsdElement
+	var ct []*xsdElement
+
+	for _, s := range v.Types.Schemas {
+		se = append(se, s.Elements...)
+		xe = append(xe, se...)
+
+		for _, e := range s.Elements {
+			if e.ComplexType != nil {
+				ct = append(ct, e.ComplexType.Sequence...)
+				ct = append(ct, e.ComplexType.Choice...)
+				ct = append(ct, e.ComplexType.SequenceChoice...)
+				ct = append(ct, e.ComplexType.All...)
+			}
+		}
+		xe = append(xe, ct...)
+
+		for _, c := range s.ComplexTypes {
+			xe = append(xe, c.Sequence...)
+			xe = append(xe, c.Choice...)
+			xe = append(xe, c.SequenceChoice...)
+			xe = append(xe, c.All...)
+		}
+	}
+
+	// Set proper XML Tag for field.
+	func(wp []*wsdlPart, x []*xsdElement) {
+		for _, p := range wp {
+			for _, e := range x {
+				if strings.HasSuffix(p.Element, e.Name) {
+					if s, ok := resolveXMLTag(p.Element, p.Partns); ok {
+						e.XMLTag = s
 					}
 				}
 			}
 		}
-	}
+	}(wp, se)
+
+	// Populate fields which are used by templates for adding package imports.
+	func(m map[string]bool, x []*xsdElement) {
+		for _, e := range x {
+			if removePackage(toGoType(removeNS(e.Type))) == "Time" {
+				addPackageImport("time", m)
+			}
+
+			if e.XMLTag != "" || (e.NameReqNil != "" && !e.TypeReqNilExists) {
+				addPackageImport("encoding/xml", m)
+			}
+		}
+	}(v.PackageImport, xe)
 
 	*w = wsdl(v)
 	return nil
@@ -74,8 +131,8 @@ type wsdlImport struct {
 
 // wsdlType represents the entry point for deserializing XSD schemas used by the wsdl file.
 type wsdlType struct {
-	Doc     string      `xml:"documentation"`
-	Schemas []xsdSchema `xml:"schema"`
+	Doc     string       `xml:"documentation"`
+	Schemas []*xsdSchema `xml:"schema"`
 }
 
 // wsdlPart defines the struct for a function parameter within a wsdl.
@@ -88,9 +145,9 @@ type wsdlPart struct {
 
 // wsdlMessage represents a function, which in turn has one or more parameters.
 type wsdlMessage struct {
-	Name  string     `xml:"name,attr"`
-	Doc   string     `xml:"documentation"`
-	Parts []wsdlPart `xml:"http://schemas.xmlsoap.org/wsdl/ part"`
+	Name  string      `xml:"name,attr"`
+	Doc   string      `xml:"documentation"`
+	Parts []*wsdlPart `xml:"http://schemas.xmlsoap.org/wsdl/ part"`
 }
 
 // wsdlFault represents a wsdl fault message.

@@ -2,15 +2,6 @@
 
 package types
 
-import (
-	"encoding/xml"
-	"time"
-)
-
-// against "unused imports"
-var _ time.Time
-var _ xml.Name
-
 type seqInner struct {
 	Str3 *string `xml:"str3"`
 }

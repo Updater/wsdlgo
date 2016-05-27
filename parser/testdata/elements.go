@@ -3,13 +3,8 @@
 package types
 
 import (
-	"encoding/xml"
 	"time"
 )
-
-// against "unused imports"
-var _ time.Time
-var _ xml.Name
 
 type echoStruct struct {
 	MString   *string    `xml:"m_string"`

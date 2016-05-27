@@ -7,10 +7,6 @@ import (
 	"time"
 )
 
-// against "unused imports"
-var _ time.Time
-var _ xml.Name
-
 // Definition of simple types
 type (
 	myversion string

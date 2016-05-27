@@ -3,7 +3,7 @@ package parser
 import "encoding/xml"
 
 // updateTypeReqNilExists is a helper function which updates TypeReqNilExists after unmarshalling.
-func updateTypeReqNilExists(e []xsdElement, m map[string]bool) {
+func updateTypeReqNilExists(e []*xsdElement, m map[string]bool) {
 	for s := 0; s < len(e); s++ {
 		if e[s].NameReqNil == "" {
 			continue
@@ -28,7 +28,7 @@ type xsdSchema struct {
 	ElementFormDefault string           `xml:"elementFormDefault,attr"`
 	Includes           []xsdInclude     `xml:"include"`
 	Imports            []xsdImport      `xml:"import"`
-	Elements           []xsdElement     `xml:"element"`
+	Elements           []*xsdElement    `xml:"element"`
 	ComplexTypes       []xsdComplexType `xml:"complexType"` //global
 	SimpleType         []xsdSimpleType  `xml:"simpleType"`
 }
@@ -128,13 +128,13 @@ type xsdComplexType struct {
 	Abstract       bool              `xml:"abstract,attr"`
 	Name           string            `xml:"name,attr"`
 	Mixed          bool              `xml:"mixed,attr"`
-	Sequence       []xsdElement      `xml:"sequence>element"`
-	Choice         []xsdElement      `xml:"choice>element"`
-	SequenceChoice []xsdElement      `xml:"sequence>choice>element"`
-	All            []xsdElement      `xml:"all>element"`
+	Sequence       []*xsdElement     `xml:"sequence>element"`
+	Choice         []*xsdElement     `xml:"choice>element"`
+	SequenceChoice []*xsdElement     `xml:"sequence>choice>element"`
+	All            []*xsdElement     `xml:"all>element"`
 	ComplexContent xsdComplexContent `xml:"complexContent"`
 	SimpleContent  xsdSimpleContent  `xml:"simpleContent"`
-	Attributes     []xsdAttribute    `xml:"attribute"`
+	Attributes     []*xsdAttribute   `xml:"attribute"`
 }
 
 func (x xsdComplexType) hasElement() bool {

@@ -91,7 +91,7 @@ func (x xsdElement) doMap(p interface{}) bool {
 		if x.Nillable && !(x.MinOccurs == "0") {
 			t = toGoType(makeUnexported(removeNS(x.Type + "ReqNil")))
 			s.Fields[t] = &sField{
-				Type: toGoPointerType(removeNS(x.Type)),
+				Type: toGoPointerType(makeUnexported(removeNS(x.Type))),
 			}
 			s.NillableRequiredType = true
 		}

@@ -1,22 +1,9 @@
 package parser
 
-import "encoding/xml"
-
-// updateTypeReqNilExists is a helper function which updates TypeReqNilExists after unmarshalling.
-func updateTypeReqNilExists(e []*xsdElement, m map[string]bool) {
-	for s := 0; s < len(e); s++ {
-		if e[s].NameReqNil == "" {
-			continue
-		}
-
-		if _, ok := m[e[s].NameReqNil]; !ok {
-			m[e[s].NameReqNil] = true
-			continue
-		}
-
-		e[s].TypeReqNilExists = true
-	}
-}
+import (
+	"encoding/xml"
+	"strings"
+)
 
 // xsdSchema represents an entire Schema structure.
 type xsdSchema struct {
@@ -28,42 +15,33 @@ type xsdSchema struct {
 	ElementFormDefault string           `xml:"elementFormDefault,attr"`
 	Includes           []xsdInclude     `xml:"include"`
 	Imports            []xsdImport      `xml:"import"`
-	Elements           []*xsdElement    `xml:"element"`
+	Elements           []xsdElement     `xml:"element"`
 	ComplexTypes       []xsdComplexType `xml:"complexType"` //global
 	SimpleType         []xsdSimpleType  `xml:"simpleType"`
 }
 
-// UnmarshalXML satisfies the XML Unmarshaler interface.
-// Populates xsdSchema based on xml data.
-func (x *xsdSchema) UnmarshalXML(d *xml.Decoder, s xml.StartElement) error {
-	// xsdSchemaAlias is used to disconnect struct methods and prevent potential loop.
-	type xsdSchemaAlias xsdSchema
-	v := xsdSchemaAlias(*x)
-
-	if err := d.DecodeElement(&v, &s); err != nil {
-		return err
-	}
-
-	m := make(map[string]bool)
-
-	for e := 0; e < len(v.Elements); e++ {
-		if v.Elements[e].ComplexType != nil {
-			updateTypeReqNilExists(v.Elements[e].ComplexType.Sequence, m)
-			updateTypeReqNilExists(v.Elements[e].ComplexType.Choice, m)
-			updateTypeReqNilExists(v.Elements[e].ComplexType.SequenceChoice, m)
-			updateTypeReqNilExists(v.Elements[e].ComplexType.All, m)
+func (x xsdSchema) doMap(p interface{}) bool {
+	switch u := p.(type) {
+	case *element:
+		var m []mapper
+		for _, v := range x.Elements {
+			m = append(m, v)
 		}
+		for _, v := range x.ComplexTypes {
+			m = append(m, v)
+		}
+		for _, v := range x.SimpleType {
+			m = append(m, v)
+		}
+
+		doMap(m, u.Types)
+		doMap(m, u.Consts)
+		doMap(m, u.Structs)
+		doMap(m, u.Messages)
+		return true
 	}
 
-	for e := 0; e < len(v.ComplexTypes); e++ {
-		updateTypeReqNilExists(v.ComplexTypes[e].Sequence, m)
-		updateTypeReqNilExists(v.ComplexTypes[e].Choice, m)
-		updateTypeReqNilExists(v.ComplexTypes[e].SequenceChoice, m)
-		updateTypeReqNilExists(v.ComplexTypes[e].All, m)
-	}
-
-	*x = xsdSchema(v)
-	return nil
+	return false
 }
 
 // xsdInclude represents schema includes.
@@ -91,35 +69,105 @@ type xsdElement struct {
 	ComplexType *xsdComplexType `xml:"complexType"` //local
 	SimpleType  *xsdSimpleType  `xml:"simpleType"`
 	Groups      []xsdGroup      `xml:"group"`
-
-	NameReqNil       string
-	TypeReqNilExists bool
-	XMLTag           string
 }
 
-// UnmarshalXML satisfies the XML Unmarshaler interface.
-// Populates xsdElement based on xml data, except when contains a complexType and it is empty.
-// Definition of complexType empty is defined by a complexType.isEmpty method.
-func (x *xsdElement) UnmarshalXML(d *xml.Decoder, s xml.StartElement) error {
-	const reqNil = "ReqNil"
-	// xsdComplexTypeAlias is used to disconnect struct methods and prevent potential loop.
-	type xsdElementAlias xsdElement
-	v := xsdElementAlias(*x)
+func (x xsdElement) doMap(p interface{}) bool {
+	switch u := p.(type) {
+	case map[string]*sStruct:
+		var t string
 
-	if err := d.DecodeElement(&v, &s); err != nil {
-		return err
+		if x.ComplexType != nil {
+			if x.ComplexType.isEmpty() {
+				break
+			}
+
+			t = makeUnexported(replaceReservedWords(removeNS(x.Name)))
+			// will eventually recurse back to this function but with ComplexType elements
+			doMap([]mapper{x.ComplexType}, u)
+		}
+
+		s := sStruct{Fields: make(map[string]*sField)}
+
+		if x.Nillable && !(x.MinOccurs == "0") {
+			t = toGoType(makeUnexported(removeNS(x.Type + "ReqNil")))
+			s.Fields[t] = &sField{
+				Type: toGoPointerType(removeNS(x.Type)),
+			}
+			s.NillableRequiredType = true
+		}
+
+		if t == "" {
+			break
+		}
+
+		if _, ok := u[t]; !ok {
+			u[t] = &s
+
+			if x.ComplexType != nil {
+				doMap([]mapper{x.ComplexType}, u[t])
+			}
+		}
+
+	case map[string]*sMessage:
+		if x.ComplexType != nil || x.Name == "" || x.Type == "" {
+			break
+		}
+
+		if v, ok := u[x.Name]; ok {
+			u[x.Name] = &sMessage{
+				XMLField: sField{
+					Name: "XMLName",
+					Type: "xml.Name",
+					Tag:  v.XMLField.Tag,
+				},
+				Type: toGoPointerType(makeUnexported(removeNS(x.Type))),
+			}
+		}
+
+	case *sStruct:
+		if x.Name == "" {
+			break
+		}
+
+		n := makeExported(replaceReservedWords(removeNS(x.Name)))
+		t := toGoPointerType(makeUnexported(removeNS(x.Type)))
+
+		if x.Nillable && !(x.MinOccurs == "0") {
+			t = toGoType(makeUnexported(removeNS(x.Type + "ReqNil")))
+		} else if strings.ToLower(x.MaxOccurs) == "unbounded" {
+			t = "[]" + toGoType(makeUnexported(removeNS(x.Type)))
+		} else if x.Type == "" && x.ComplexType != nil && !x.ComplexType.isEmpty() {
+			t = toGoPointerType(makeUnexported(removeNS(x.Name)))
+			n = ""
+		}
+
+		if convertPointerToValue(t) == "" {
+			break
+		}
+
+		if u.Fields == nil {
+			u.Fields = make(map[string]*sField)
+		}
+
+		if _, ok := u.Fields[n]; !ok {
+			nf := makeExported(n)
+			var tg string
+
+			if nf != "" {
+				tg = "`" + `xml:"` + x.Name + `"` + "`"
+			}
+
+			u.Fields[n] = &sField{
+				Name: nf,
+				Type: t,
+				Tag:  tg,
+			}
+		}
+
+		return true
 	}
 
-	if v.ComplexType != nil && v.ComplexType.isEmpty() {
-		return nil
-	}
-
-	if v.Nillable && !(v.MinOccurs == "0") {
-		v.NameReqNil = makeUnexported(removeNS(v.Type + reqNil))
-	}
-
-	*x = xsdElement(v)
-	return nil
+	return false
 }
 
 // xsdComplexType represents a Schema complex type.
@@ -128,13 +176,74 @@ type xsdComplexType struct {
 	Abstract       bool              `xml:"abstract,attr"`
 	Name           string            `xml:"name,attr"`
 	Mixed          bool              `xml:"mixed,attr"`
-	Sequence       []*xsdElement     `xml:"sequence>element"`
-	Choice         []*xsdElement     `xml:"choice>element"`
-	SequenceChoice []*xsdElement     `xml:"sequence>choice>element"`
-	All            []*xsdElement     `xml:"all>element"`
+	Sequence       []xsdElement      `xml:"sequence>element"`
+	Choice         []xsdElement      `xml:"choice>element"`
+	SequenceChoice []xsdElement      `xml:"sequence>choice>element"`
+	All            []xsdElement      `xml:"all>element"`
 	ComplexContent xsdComplexContent `xml:"complexContent"`
 	SimpleContent  xsdSimpleContent  `xml:"simpleContent"`
-	Attributes     []*xsdAttribute   `xml:"attribute"`
+	Attributes     []xsdAttribute    `xml:"attribute"`
+}
+
+func (x xsdComplexType) doMap(p interface{}) bool {
+	var e []xsdElement
+	e = append(e, x.Sequence...)
+	e = append(e, x.Choice...)
+	e = append(e, x.SequenceChoice...)
+	e = append(e, x.All...)
+	e = append(e, x.ComplexContent.Extension.Sequence...)
+
+	var a []xsdAttribute
+	a = append(a, x.Attributes...)
+
+	switch u := p.(type) {
+	case map[string]*sStruct:
+		var m []mapper
+		for _, v := range e {
+			m = append(m, v)
+		}
+		for _, v := range a {
+			m = append(m, v)
+		}
+		m = append(m, x.ComplexContent.Extension)
+		doMap(m, u)
+
+		if x.Name == "" {
+			break
+		}
+
+		t := makeUnexported(toGoType(removeNS(x.Name)))
+		if t == "" {
+			break
+		}
+
+		s := sStruct{
+			Fields: map[string]*sField{
+				t: &sField{},
+			},
+		}
+
+		if _, ok := u[t]; !ok {
+			u[t] = &s
+			doMap(m, u[t])
+		}
+
+		return true
+
+	case *sStruct:
+		var m []mapper
+		for _, v := range e {
+			m = append(m, v)
+		}
+		for _, v := range a {
+			m = append(m, v)
+		}
+		doMap(m, u)
+
+		return true
+	}
+
+	return false
 }
 
 func (x xsdComplexType) hasElement() bool {
@@ -174,10 +283,32 @@ type xsdSimpleContent struct {
 
 // xsdExtension element extends an existing simpleType or complexType element.
 type xsdExtension struct {
-	XMLName    xml.Name        `xml:"extension"`
-	Base       string          `xml:"base,attr"`
-	Attributes []*xsdAttribute `xml:"attribute"`
-	Sequence   []xsdElement    `xml:"sequence>element"`
+	XMLName    xml.Name       `xml:"extension"`
+	Base       string         `xml:"base,attr"`
+	Attributes []xsdAttribute `xml:"attribute"`
+	Sequence   []xsdElement   `xml:"sequence>element"`
+}
+
+func (x xsdExtension) doMap(p interface{}) bool {
+	if x.Base == "" {
+		return false
+	}
+
+	switch u := p.(type) {
+	case *sStruct:
+		if u.Fields == nil {
+			u.Fields = make(map[string]*sField)
+		}
+
+		if _, ok := u.Fields[x.Base]; !ok {
+			u.Fields[x.Base] = &sField{
+				Name: toGoPointerType(makeUnexported(removeNS(x.Base))),
+			}
+		}
+
+		return true
+	}
+	return false
 }
 
 // xsdAttribute represent an element attribute. Simple elements cannot have
@@ -190,11 +321,87 @@ type xsdAttribute struct {
 	SimpleType *xsdSimpleType `xml:"simpleType"`
 }
 
+func (x xsdAttribute) doMap(p interface{}) bool {
+	switch u := p.(type) {
+	case *sStruct:
+		if x.Name == "" {
+			break
+		}
+
+		n := makeExported(replaceReservedWords(removeNS(x.Name)))
+		t := toGoPointerType(makeUnexported(removeNS(x.Type)))
+
+		if convertPointerToValue(t) == "" {
+			break
+		}
+
+		if u.Fields == nil {
+			u.Fields = make(map[string]*sField)
+		}
+
+		if _, ok := u.Fields[n]; !ok {
+			n := makeExported(removeNS(n))
+			var tg string
+			if n != "" {
+				tg = "`" + `xml:"` + x.Name + `,attr"` + "`"
+			}
+
+			u.Fields[n] = &sField{
+				Name: n,
+				Type: t,
+				Tag:  tg,
+			}
+		}
+
+		return true
+	}
+
+	return false
+}
+
 // xsdSimpleType element defines a simple type and specifies the constraints
 // and information about the values of attributes or text-only elements.
 type xsdSimpleType struct {
 	Name        string         `xml:"name,attr"`
 	Restriction xsdRestriction `xml:"restriction"`
+}
+
+func (x xsdSimpleType) doMap(p interface{}) bool {
+	if x.Name == "" {
+		return false
+	}
+
+	t := sType{
+		Name:           makeUnexported(replaceReservedWords(x.Name)),
+		UnderlyingType: makeUnexported(toGoType(removeNS(x.Restriction.Base))),
+	}
+
+	if t.UnderlyingType == "" {
+		return false
+	}
+
+	switch u := p.(type) {
+	case map[string]*sType:
+		if _, ok := u[t.Name]; !ok {
+			u[t.Name] = &t
+		}
+
+	case map[string]*sConst:
+		for _, e := range x.Restriction.Enumeration {
+			n := makeUnexported(replaceReservedWords(x.Name)) + lint(normalize(e.Value))
+
+			if _, ok := u[n]; !ok {
+				u[n] = &sConst{
+					Name:  n,
+					Type:  t.Name,
+					Value: e.Value,
+				}
+			}
+		}
+
+		return true
+	}
+	return false
 }
 
 // xsdRestriction defines restrictions on a simpleType, simpleContent, or complexContent definition.

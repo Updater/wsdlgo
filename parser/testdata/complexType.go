@@ -7,24 +7,21 @@ import (
 	"time"
 )
 
-type serviceProductType struct {
-	ServiceProducts *arrayOfProducts `xml:"ServiceProducts"`
-	Version         stringReqNil     `xml:"Version"`
-}
-
 type arrayOfProducts struct {
 	Product []string `xml:"Product"`
 }
 
-type serviceProductTypeExt struct {
-	*serviceProductType
-
-	Nonboth *string `xml:"nonboth"`
+type dateTimeReqNil struct {
+	*time.Time
 }
 
-type pingResponseType struct {
-	TransactionId *string      `xml:"TransactionId"`
-	Version       stringReqNil `xml:"Version"`
+// MarshalXML satisfies the XML Marshaler interface for type dateTimeReqNil.
+func (t dateTimeReqNil) MarshalXML(e *xml.Encoder, s xml.StartElement) error {
+	if t.Time == nil {
+		return e.EncodeElement("", s)
+	}
+
+	return e.EncodeElement(t, s)
 }
 
 type intReqNil struct {
@@ -40,6 +37,32 @@ func (t intReqNil) MarshalXML(e *xml.Encoder, s xml.StartElement) error {
 	return e.EncodeElement(t, s)
 }
 
+type myelements struct {
+	DateOfBirth1    dateTimeReqNil   `xml:"DateOfBirth1"`
+	DateOfBirth2    dateTimeReqNil   `xml:"DateOfBirth2"`
+	Minzero         *int32           `xml:"minzero"`
+	Minzeronil      *string          `xml:"minzeronil"`
+	Nilint          intReqNil        `xml:"nilint"`
+	Nilstring       stringReqNil     `xml:"nilstring"`
+	Nonboth         *string          `xml:"nonboth"`
+	ServiceProducts *arrayOfProducts `xml:"ServiceProducts"`
+}
+
+type pingResponseType struct {
+	TransactionId *string      `xml:"TransactionId"`
+	Version       stringReqNil `xml:"Version"`
+}
+
+type serviceProductType struct {
+	ServiceProducts *arrayOfProducts `xml:"ServiceProducts"`
+	Version         stringReqNil     `xml:"Version"`
+}
+
+type serviceProductTypeExt struct {
+	Nonboth *string `xml:"nonboth"`
+	*serviceProductType
+}
+
 type stringReqNil struct {
 	*string
 }
@@ -51,33 +74,4 @@ func (t stringReqNil) MarshalXML(e *xml.Encoder, s xml.StartElement) error {
 	}
 
 	return e.EncodeElement(t, s)
-}
-
-type dateTimeReqNil struct {
-	*time.Time
-}
-
-// MarshalXML satisfies the XML Marshaler interface for type dateTimeReqNil.
-func (t dateTimeReqNil) MarshalXML(e *xml.Encoder, s xml.StartElement) error {
-	if t.Time == nil {
-		return e.EncodeElement("", s)
-	}
-
-	tt := time.Time(*t.Time)
-	if tt.IsZero() {
-		return e.EncodeElement("", s)
-	}
-
-	return e.EncodeElement(t, s)
-}
-
-type myelements struct {
-	Nonboth         *string          `xml:"nonboth"`
-	Minzero         *int32           `xml:"minzero"`
-	Nilint          intReqNil        `xml:"nilint"`
-	Nilstring       stringReqNil     `xml:"nilstring"`
-	Minzeronil      *string          `xml:"minzeronil"`
-	DateOfBirth1    dateTimeReqNil   `xml:"DateOfBirth1"`
-	DateOfBirth2    dateTimeReqNil   `xml:"DateOfBirth2"`
-	ServiceProducts *arrayOfProducts `xml:"ServiceProducts"`
 }

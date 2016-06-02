@@ -6,25 +6,22 @@ import (
 	"time"
 )
 
-type echoStruct struct {
-	MString   *string    `xml:"m_string"`
-	MDatetime *time.Time `xml:"m_datetime"`
+type echoResponse struct {
+	AttrString *string      `xml:"attr_string,attr"`
+	Attrint    *int32       `xml:"attr-int,attr"`
+	Struct1    []echoStruct `xml:"struct1"`
+	Struct2    *echoStruct  `xml:"struct-2"`
+}
 
-	MAttr *string `xml:"m_attr,attr"`
+type echoStruct struct {
+	MAttr     *string    `xml:"m_attr,attr"`
+	MDatetime *time.Time `xml:"m_datetime"`
+	MString   *string    `xml:"m_string"`
 }
 
 type echoele struct {
-	Struct1 *echoStruct `xml:"struct1"`
-	Struct2 *echoStruct `xml:"struct-2"`
-
-	AttrString *string `xml:"attr_string,attr"`
-	Attrint    *int32  `xml:"attr-int,attr"`
-}
-
-type echoResponse struct {
-	Struct1 []echoStruct `xml:"struct1"`
-	Struct2 *echoStruct  `xml:"struct-2"`
-
-	AttrString *string `xml:"attr_string,attr"`
-	Attrint    *int32  `xml:"attr-int,attr"`
+	AttrString *string     `xml:"attr_string,attr"`
+	Attrint    *int32      `xml:"attr-int,attr"`
+	Struct1    *echoStruct `xml:"struct1"`
+	Struct2    *echoStruct `xml:"struct-2"`
 }

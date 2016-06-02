@@ -17,8 +17,9 @@ type Generator interface {
 
 // generator defines the struct for the WSDL code generator.
 type generator struct {
-	Name string
-	WSDL *wsdl
+	Name    string
+	WSDL    *wsdl
+	Element element
 
 	content []byte
 	reader  io.Reader
@@ -40,21 +41,22 @@ func (g *generator) Write(w io.Writer) error {
 	return err
 }
 
-func (g *generator) populateContent() error {
+func (g *generator) populateElement() error {
 	f := template.FuncMap{
-		"toGoType":             toGoType,
-		"toGoPointerType":      toGoPointerType,
-		"replaceReservedWords": replaceReservedWords,
-		"makeUnexported":       makeUnexported,
-		"makeExported":         makeExported,
-		"normalize":            normalize,
-		"lint":                 lint,
-		"removeNS":             removeNS,
-		"removePackage":        removePackage,
+		"toGoType":              toGoType,
+		"toGoPointerType":       toGoPointerType,
+		"replaceReservedWords":  replaceReservedWords,
+		"makeUnexported":        makeUnexported,
+		"makeExported":          makeExported,
+		"normalize":             normalize,
+		"lint":                  lint,
+		"removeNS":              removeNS,
+		"removePackage":         removePackage,
+		"convertPointerToValue": convertPointerToValue,
 	}
 
 	t := template.New("types")
-	for _, v := range []string{baseTmpl, constTmpl, elementsTmpl, attributesTmpl, simpleTypesTmpl, complexTypesTmpl} {
+	for _, v := range []string{elementTmpl} {
 		var err error
 		t, err = template.Must(t.Clone()).Funcs(f).Parse(v)
 		if err != nil {
@@ -83,7 +85,14 @@ func (g *generator) parse() error {
 		return err
 	}
 
-	return g.populateContent()
+	g.Element.Imports = make(map[string]string)
+	g.Element.Types = make(map[string]*sType)
+	g.Element.Consts = make(map[string]*sConst)
+	g.Element.Structs = make(map[string]*sStruct)
+	g.Element.Messages = make(map[string]*sMessage)
+	doMap([]mapper{g.WSDL}, &g.Element)
+
+	return g.populateElement()
 }
 
 // NewGenerator initializes a Generator interface implemented by generator type.
@@ -305,4 +314,8 @@ func removePackage(s string) string {
 	}
 
 	return r[0]
+}
+
+func convertPointerToValue(s string) string {
+	return strings.Replace(s, "*", "", -1)
 }

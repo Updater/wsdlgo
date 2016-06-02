@@ -2,12 +2,12 @@
 
 package types
 
-type seqInner struct {
+type seq struct {
 	Str3 *string `xml:"str3"`
 }
 
 type typeOut struct {
+	*seq
 	Str1 *string `xml:"str1"`
 	Str2 *string `xml:"str2"`
-	*seqInner
 }

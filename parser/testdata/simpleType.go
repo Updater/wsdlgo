@@ -7,26 +7,26 @@ import (
 	"time"
 )
 
-// Definition of simple types
+// Definition of types
 type (
-	myversion string
 	iD        string
+	myversion string
 )
 
-// Constants associated with simple types defined above
+// Constants associated with types defined above
 const (
-	myversion16   myversion = "16"
-	myversion18   myversion = "18"
-	myversion19   myversion = "19"
+	myversion16   myversion = "1.6"
+	myversion18   myversion = "1.8"
+	myversion19   myversion = "1.9"
 	myversionHTML myversion = "html"
 )
 
 type ruby struct {
-	Myversion *myversion `xml:"myversion"`
 	Date      *time.Time `xml:"date"`
+	Myversion *myversion `xml:"myversion"`
 }
 
-type pingIdIn struct {
+type ping_id_in struct {
 	XMLName xml.Name `xml:"http://www.test.com/test/ ping_id_in"`
 
 	*iD

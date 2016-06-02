@@ -1,4 +1,4 @@
-Tested On 06/02/16 07:39:51 AM EDT
+Tested On 06/02/16 11:45:51 AM EDT
 
 github.com/Bridgevine/wsdlgo/parser/element.go:9:	doMap			100.0%
 github.com/Bridgevine/wsdlgo/parser/generator.go:30:	Write			57.1%

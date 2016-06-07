@@ -67,17 +67,22 @@ type orderStatus struct {
 }
 
 type orderStatusInfo struct {
-	MON           *string  `xml:"MON"`
-	SessionId     *string  `xml:"sessionId"`
-	Status        *bool    `xml:"Status"`
-	StatusCode    *string  `xml:"StatusCode"`
-	StatusMessage []string `xml:"StatusMessage"`
+	MON           *string   `xml:"MON"`
+	Package       *package_ `xml:"Package"`
+	SessionId     *string   `xml:"sessionId"`
+	Status        *bool     `xml:"Status"`
+	StatusCode    *string   `xml:"StatusCode"`
+	StatusMessage []string  `xml:"StatusMessage"`
 }
 
 type orderStatusResponse struct {
 	Orderid      *string   `xml:"Orderid"`
 	Version      []version `xml:"Version"`
 	VoiceOrderid *string   `xml:"VoiceOrderid"`
+}
+
+type package_ struct {
+	Usoc *string `xml:"usoc,attr"`
 }
 
 type pingResponseType struct {

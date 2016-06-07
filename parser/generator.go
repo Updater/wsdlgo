@@ -191,8 +191,7 @@ func capitalizeMultipleWord(s string) string {
 // replaceReservedWords replaces Go reserved keywords to avoid compilation issues
 func replaceReservedWords(s string) string {
 	s = capitalizeMultipleWord(s)
-	v, ok := reservedWords[s]
-	if ok {
+	if v, ok := reservedWords[s]; ok {
 		return v
 	}
 
@@ -221,6 +220,9 @@ var xsd2GoTypes = map[string]string{
 	"unsignedbyte":  "byte",
 	"unsignedlong":  "uint64",
 	"anytype":       "interface{}",
+	"anyuri":        "interface{}",
+	"duration":      "string",
+	"qname":         "string",
 }
 
 func toGoType(s string) string {

@@ -72,6 +72,12 @@ type xsdElement struct {
 }
 
 func (x xsdElement) doMap(p interface{}) bool {
+	// TODO handle interfaces and slice of bytes
+	lt := toGoPointerType(makeUnexported(removeNS(x.Type)))
+	if lt == "interface{}" || lt == "[]byte" {
+		return false
+	}
+
 	switch u := p.(type) {
 	case map[string]*sStruct:
 		var t string
@@ -91,8 +97,9 @@ func (x xsdElement) doMap(p interface{}) bool {
 		if x.Nillable && !(x.MinOccurs == "0") {
 			t = toGoType(makeUnexported(removeNS(x.Type + "ReqNil")))
 			s.Fields[t] = &sField{
-				Type: toGoPointerType(makeUnexported(removeNS(x.Type))),
+				Type: lt,
 			}
+
 			s.NillableRequiredType = true
 		}
 
@@ -129,7 +136,15 @@ func (x xsdElement) doMap(p interface{}) bool {
 			break
 		}
 
-		n := makeExported(replaceReservedWords(removeNS(x.Name)))
+		if x.Type == "" && x.ComplexType != nil && !x.ComplexType.isEmpty() {
+			x.Type = makeUnexported(x.Name)
+		}
+
+		if x.Type == "" {
+			break
+		}
+
+		n := makeExported(normalize(capitalizeMultipleWord(removeNS(x.Name))))
 		t := toGoPointerType(makeUnexported(removeNS(x.Type)))
 
 		if x.Nillable && !(x.MinOccurs == "0") {
@@ -212,7 +227,7 @@ func (x xsdComplexType) doMap(p interface{}) bool {
 			break
 		}
 
-		t := makeUnexported(toGoType(removeNS(x.Name)))
+		t := replaceReservedWords(makeUnexported(removeNS(x.Name)))
 		if t == "" {
 			break
 		}
@@ -364,6 +379,7 @@ func (x xsdAttribute) doMap(p interface{}) bool {
 type xsdSimpleType struct {
 	Name        string         `xml:"name,attr"`
 	Restriction xsdRestriction `xml:"restriction"`
+	List        xsdList        `xml:"list"`
 }
 
 func (x xsdSimpleType) doMap(p interface{}) bool {
@@ -372,22 +388,37 @@ func (x xsdSimpleType) doMap(p interface{}) bool {
 	}
 
 	t := sType{
-		Name:           makeUnexported(replaceReservedWords(x.Name)),
-		UnderlyingType: makeUnexported(toGoType(removeNS(x.Restriction.Base))),
-	}
-
-	if t.UnderlyingType == "" {
-		return false
+		Name: makeUnexported(replaceReservedWords(x.Name)),
 	}
 
 	switch u := p.(type) {
 	case map[string]*sType:
+		t.UnderlyingType = makeUnexported(toGoType(removeNS(x.Restriction.Base)))
+
+		for _, st := range x.List.SimpleType {
+			if t.UnderlyingType != "" {
+				break
+			}
+
+			st.Name = t.Name
+			doMap([]mapper{st}, u)
+		}
+
+		if t.UnderlyingType == "" {
+			break
+		}
 		if _, ok := u[t.Name]; !ok {
 			u[t.Name] = &t
 		}
 
 	case map[string]*sConst:
-		for _, e := range x.Restriction.Enumeration {
+		var rv []xsdRestrictionValue
+		rv = append(rv, x.Restriction.Enumeration...)
+		for _, l := range x.List.SimpleType {
+			rv = append(rv, l.Restriction.Enumeration...)
+		}
+
+		for _, e := range rv {
 			n := makeUnexported(replaceReservedWords(x.Name)) + lint(normalize(e.Value))
 
 			if _, ok := u[n]; !ok {
@@ -421,4 +452,9 @@ type xsdRestriction struct {
 type xsdRestrictionValue struct {
 	Doc   string `xml:"annotation>documentation"`
 	Value string `xml:"value,attr"`
+}
+
+// xsdList defines a list type.
+type xsdList struct {
+	SimpleType []xsdSimpleType `xml:"simpleType"`
 }

@@ -7,7 +7,7 @@ type seq struct {
 }
 
 type typeOut struct {
-	*seq
+	Seq  *seq    `xml:"seq"`
 	Str1 *string `xml:"str1"`
 	Str2 *string `xml:"str2"`
 }

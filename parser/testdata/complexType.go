@@ -24,6 +24,15 @@ func (t dateTimeReqNil) MarshalXML(e *xml.Encoder, s xml.StartElement) error {
 	return e.EncodeElement(t, s)
 }
 
+type getOrderStatusResponse struct {
+	GetOrderStatusResult *getOrderStatusResult `xml:"GetOrderStatusResult"`
+}
+
+type getOrderStatusResult struct {
+	OrderStatusResponse *orderStatusResponse `xml:"OrderStatusResponse"`
+	StatusInfo          *orderStatusInfo     `xml:"StatusInfo"`
+}
+
 type intReqNil struct {
 	*int32
 }
@@ -48,6 +57,29 @@ type myelements struct {
 	ServiceProducts *arrayOfProducts `xml:"ServiceProducts"`
 }
 
+type orderStatus struct {
+	Actualtime     *string         `xml:"actualtime"`
+	Estimatedtime  *string         `xml:"estimatedtime"`
+	IsTechAssigned *string         `xml:"isTechAssigned"`
+	ServiceStatus  []serviceStatus `xml:"ServiceStatus"`
+	Source         *string         `xml:"source"`
+	Stage          *string         `xml:"stage"`
+}
+
+type orderStatusInfo struct {
+	MON           *string  `xml:"MON"`
+	SessionId     *string  `xml:"sessionId"`
+	Status        *bool    `xml:"Status"`
+	StatusCode    *string  `xml:"StatusCode"`
+	StatusMessage []string `xml:"StatusMessage"`
+}
+
+type orderStatusResponse struct {
+	Orderid      *string   `xml:"Orderid"`
+	Version      []version `xml:"Version"`
+	VoiceOrderid *string   `xml:"VoiceOrderid"`
+}
+
 type pingResponseType struct {
 	TransactionId *string      `xml:"TransactionId"`
 	Version       stringReqNil `xml:"Version"`
@@ -63,6 +95,13 @@ type serviceProductTypeExt struct {
 	*serviceProductType
 }
 
+type serviceStatus struct {
+	OrderNumber       *string `xml:"OrderNumber"`
+	Provisionstatus   *string `xml:"provisionstatus"`
+	Status            *string `xml:"status"`
+	Statusdescription *string `xml:"Statusdescription"`
+}
+
 type stringReqNil struct {
 	*string
 }
@@ -74,4 +113,9 @@ func (t stringReqNil) MarshalXML(e *xml.Encoder, s xml.StartElement) error {
 	}
 
 	return e.EncodeElement(t, s)
+}
+
+type version struct {
+	OrderStatus   []orderStatus `xml:"OrderStatus"`
+	VersionNumber *string       `xml:"VersionNumber"`
 }

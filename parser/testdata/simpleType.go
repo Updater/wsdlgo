@@ -9,16 +9,25 @@ import (
 
 // Definition of types
 type (
-	iD        string
-	myversion string
+	contracttype string
+	iD           string
+	myversion    string
 )
 
 // Constants associated with types defined above
 const (
-	myversion16   myversion = "1.6"
-	myversion18   myversion = "1.8"
-	myversion19   myversion = "1.9"
-	myversionHTML myversion = "html"
+	contracttypeAll          contracttype = "All"
+	contracttypeMonthToMonth contracttype = "MonthToMonth"
+	contracttypeNoContract   contracttype = "NoContract"
+	contracttypeOneYear      contracttype = "OneYear"
+	contracttypeSixMonths    contracttype = "SixMonths"
+	contracttypeThreeYears   contracttype = "ThreeYears"
+	contracttypeTwoYears     contracttype = "TwoYears"
+	contracttypeUnKnown      contracttype = "UnKnown"
+	myversion16              myversion    = "1.6"
+	myversion18              myversion    = "1.8"
+	myversion19              myversion    = "1.9"
+	myversionHTML            myversion    = "html"
 )
 
 type ruby struct {

@@ -38,6 +38,64 @@
                     </xsd:extension>
                 </xsd:complexContent>
             </xsd:complexType>
+            <xs:complexType name="OrderStatusInfo">
+                <xs:sequence>
+                    <xs:element minOccurs="0" maxOccurs="1" name="sessionId" type="xs:string" />
+                    <xs:element minOccurs="1" maxOccurs="1" name="Status" type="xs:boolean" />
+                    <xs:element minOccurs="0" maxOccurs="1" name="StatusCode" type="xs:string" />
+                    <xs:element minOccurs="0" maxOccurs="unbounded" name="StatusMessage" type="xs:string" />
+                    <xs:element minOccurs="0" maxOccurs="1" name="MON" type="xs:string" />
+                </xs:sequence>
+            </xs:complexType>
+            <xs:element name="GetOrderStatusResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" maxOccurs="1" name="GetOrderStatusResult">
+                            <xs:complexType>
+                                <xs:sequence>
+                                    <xs:element minOccurs="0" maxOccurs="1" name="OrderStatusResponse">
+                                        <xs:complexType>
+                                            <xs:sequence>
+                                                <xs:element minOccurs="0" maxOccurs="1" name="VoiceOrderid" type="xs:string" />
+                                                <xs:element minOccurs="0" maxOccurs="1" name="Orderid" type="xs:string" />
+                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="Version">
+                                                    <xs:complexType>
+                                                        <xs:sequence>
+                                                            <xs:element minOccurs="0" maxOccurs="1" name="VersionNumber" type="xs:string" />
+                                                            <xs:element minOccurs="0" maxOccurs="unbounded" name="OrderStatus">
+                                                                <xs:complexType>
+                                                                    <xs:sequence>
+                                                                        <xs:element minOccurs="0" maxOccurs="1" name="isTechAssigned" type="xs:string" />
+                                                                        <xs:element minOccurs="0" maxOccurs="1" name="stage" type="xs:string" />
+                                                                        <xs:element minOccurs="0" maxOccurs="1" name="source" type="xs:string" />
+                                                                        <xs:element minOccurs="0" maxOccurs="unbounded" name="ServiceStatus">
+                                                                            <xs:complexType>
+                                                                                <xs:sequence>
+                                                                                    <xs:element minOccurs="0" maxOccurs="1" name="OrderNumber" type="xs:string" />
+                                                                                    <xs:element minOccurs="0" maxOccurs="1" name="status" type="xs:string" />
+                                                                                    <xs:element minOccurs="0" maxOccurs="1" name="Statusdescription" type="xs:string" />
+                                                                                    <xs:element minOccurs="0" maxOccurs="1" name="provisionstatus" type="xs:string" />
+                                                                                </xs:sequence>
+                                                                            </xs:complexType>
+                                                                        </xs:element>
+                                                                        <xs:element minOccurs="0" maxOccurs="1" name="estimatedtime" type="xs:string" />
+                                                                        <xs:element minOccurs="0" maxOccurs="1" name="actualtime" type="xs:string" />
+                                                                    </xs:sequence>
+                                                                </xs:complexType>
+                                                            </xs:element>
+                                                        </xs:sequence>
+                                                    </xs:complexType>
+                                                </xs:element>
+                                            </xs:sequence>
+                                        </xs:complexType>
+                                    </xs:element>
+                                    <xs:element minOccurs="0" maxOccurs="1" name="StatusInfo" type="tns:OrderStatusInfo" />
+                                </xs:sequence>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
             <xsd:complexType name="PingResponseType">
                 <xsd:sequence>
                     <xsd:element name="TransactionId" type="xsd:string"></xsd:element>

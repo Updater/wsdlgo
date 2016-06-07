@@ -1,11 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<definitions
-    name="echo"
-    targetNamespace="urn:docrpc"
-    xmlns:tns="urn:docrpc"
-    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-    xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
-    xmlns="http://schemas.xmlsoap.org/wsdl/">
+<definitions name="echo" targetNamespace="urn:docrpc" 
+  xmlns:tns="urn:docrpc" 
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+  xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" 
+  xmlns="http://schemas.xmlsoap.org/wsdl/">
   <types>
     <xsd:schema elementFormDefault="unqualified" targetNamespace="urn:docrpc">
       <xsd:complexType name="echo_struct">
@@ -15,7 +13,9 @@
         </xsd:sequence>
         <xsd:attribute name="m_attr" type="xsd:string" />
       </xsd:complexType>
-
+      <xs:element name="anyType" nillable="true" type="xs:anyType" />
+      <xs:element name="anyURI" nillable="true" type="xs:anyURI" />
+      <xs:element name="base64Binary" nillable="true" type="xs:base64Binary" />
       <xsd:element name="echoele">
         <xsd:complexType>
           <xsd:sequence>
@@ -38,21 +38,18 @@
       </xsd:element>
     </xsd:schema>
   </types>
-
   <message name="echo_in">
     <part name="parameters" element="tns:echoele" />
   </message>
   <message name="echo_out">
     <part name="parameters" element="tns:echo_response" />
   </message>
-
   <portType name="docrpc_porttype">
     <operation name="echo">
       <input message="tns:echo_in" />
       <output message="tns:echo_out" />
     </operation>
   </portType>
-
   <binding name="docrpc_binding" type="tns:docrpc_porttype">
     <soap:binding transport="http://schemas.xmlsoap.org/soap/http" style="document" />
     <operation name="echo">
@@ -65,7 +62,6 @@
       </output>
     </operation>
   </binding>
-
   <service name="docrpc_service">
     <port name="docprc_service_port" binding="tns:docrpc_binding">
       <soap:address location="http://localhost:17171/" />

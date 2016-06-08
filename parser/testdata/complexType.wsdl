@@ -45,6 +45,11 @@
                     <xs:element minOccurs="0" maxOccurs="1" name="StatusCode" type="xs:string" />
                     <xs:element minOccurs="0" maxOccurs="unbounded" name="StatusMessage" type="xs:string" />
                     <xs:element minOccurs="0" maxOccurs="1" name="MON" type="xs:string" />
+                    <xs:element name="Package" minOccurs="0">
+                        <xs:complexType>
+                            <xs:attribute name="usoc" type="xs:string" use="required"/>
+                        </xs:complexType>
+                    </xs:element>
                 </xs:sequence>
             </xs:complexType>
             <xs:element name="GetOrderStatusResponse">

@@ -87,7 +87,7 @@ func (x xsdElement) doMap(p interface{}) bool {
 				break
 			}
 
-			t = makeUnexported(replaceReservedWords(removeNS(x.Name)))
+			t = replaceReservedWords(makeUnexported(removeNS(x.Name)))
 			// will eventually recurse back to this function but with ComplexType elements
 			doMap([]mapper{x.ComplexType}, u)
 		}

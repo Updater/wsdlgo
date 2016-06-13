@@ -12,6 +12,7 @@ type (
 	contracttype string
 	iD           string
 	myversion    string
+	uniqueID     string
 )
 
 // Constants associated with types defined above
@@ -27,7 +28,9 @@ const (
 	myversion16              myversion    = "1.6"
 	myversion18              myversion    = "1.8"
 	myversion19              myversion    = "1.9"
-	myversionHTML            myversion    = "html"
+	myversionhtml            myversion    = "html"
+	uniqueID1                uniqueID     = "1"
+	uniqueIDHTML             uniqueID     = "Html"
 )
 
 type ruby struct {
@@ -35,7 +38,7 @@ type ruby struct {
 	Myversion *myversion `xml:"myversion"`
 }
 
-type ping_id_in struct {
+type pingIDIn struct {
 	XMLName xml.Name `xml:"http://www.test.com/test/ ping_id_in"`
 
 	*iD

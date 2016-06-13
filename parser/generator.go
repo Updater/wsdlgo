@@ -43,14 +43,6 @@ func (g *generator) Write(w io.Writer) error {
 
 func (g *generator) populateElement() error {
 	f := template.FuncMap{
-		"toGoType":              toGoType,
-		"toGoPointerType":       toGoPointerType,
-		"replaceReservedWords":  replaceReservedWords,
-		"makeUnexported":        makeUnexported,
-		"makeExported":          makeExported,
-		"normalize":             normalize,
-		"lint":                  lint,
-		"removeNS":              removeNS,
 		"removePackage":         removePackage,
 		"convertPointerToValue": convertPointerToValue,
 	}
@@ -85,11 +77,11 @@ func (g *generator) parse() error {
 		return err
 	}
 
-	g.Element.Imports = make(map[string]string)
-	g.Element.Types = make(map[string]*sType)
-	g.Element.Consts = make(map[string]*sConst)
-	g.Element.Structs = make(map[string]*sStruct)
-	g.Element.Messages = make(map[string]*sMessage)
+	g.Element.Imports = make(mapofImports)
+	g.Element.Types = make(mapofTypes)
+	g.Element.Consts = make(mapofConsts)
+	g.Element.Structs = make(mapofStructs)
+	g.Element.Messages = make(mapofMessages)
 	doMap([]mapper{g.WSDL}, &g.Element)
 
 	return g.populateElement()
@@ -132,32 +124,32 @@ func makeExported(s string) string {
 }
 
 var reservedWords = map[string]string{
-	"break":       "break_",
-	"default":     "default_",
-	"func":        "func_",
-	"interface":   "interface_",
-	"select":      "select_",
-	"case":        "case_",
-	"defer":       "defer_",
-	"go":          "go_",
-	"map":         "map_",
-	"struct":      "struct_",
-	"chan":        "chan_",
-	"else":        "else_",
-	"goto":        "goto_",
-	"package":     "package_",
-	"switch":      "switch_",
-	"const":       "const_",
-	"fallthrough": "fallthrough_",
-	"if":          "if_",
-	"range":       "range_",
-	"type":        "type_",
-	"continue":    "continue_",
-	"for":         "for_",
-	"import":      "import_",
-	"return":      "return_",
-	"var":         "var_",
-	"time":        "time_",
+	"break":       "breakType",
+	"default":     "defaultType",
+	"func":        "funcType",
+	"interface":   "interfaceType",
+	"select":      "selectType",
+	"case":        "caseType",
+	"defer":       "deferType",
+	"go":          "goType",
+	"map":         "mapType",
+	"struct":      "structType",
+	"chan":        "chanType",
+	"else":        "elseType",
+	"goto":        "gotoType",
+	"package":     "packageType",
+	"switch":      "switchType",
+	"const":       "constType",
+	"fallthrough": "fallthroughType",
+	"if":          "ifType",
+	"range":       "rangeType",
+	"type":        "typeType",
+	"continue":    "continueType",
+	"for":         "forType",
+	"import":      "importType",
+	"return":      "returnType",
+	"var":         "varType",
+	"time":        "timeType",
 }
 
 // normalize, normalizes value to be used as a valid Go identifier, avoiding compilation issues
@@ -243,60 +235,6 @@ func toGoPointerType(s string) string {
 	}
 
 	return "*" + v
-}
-
-// lint returns a different name if it should be different.
-func lint(s string) string {
-	u := strings.ToUpper(s)
-	_, ok := commonInitialisms[u]
-	if ok {
-		return u
-	}
-
-	return s
-}
-
-// commonInitialisms is a set of common initialisms.
-// Only add entries that are highly unlikely to be non-initialisms.
-// For instance, "ID" is fine (Freudian code is rare), but "AND" is not.
-// Borrowwed from github.com/golang/lint
-var commonInitialisms = map[string]bool{
-	"API":   true,
-	"ASCII": true,
-	"CPU":   true,
-	"CSS":   true,
-	"DNS":   true,
-	"EOF":   true,
-	"GUID":  true,
-	"HTML":  true,
-	"HTTP":  true,
-	"HTTPS": true,
-	"ID":    true,
-	"IP":    true,
-	"JSON":  true,
-	"LHS":   true,
-	"QPS":   true,
-	"RAM":   true,
-	"RHS":   true,
-	"RPC":   true,
-	"SLA":   true,
-	"SMTP":  true,
-	"SQL":   true,
-	"SSH":   true,
-	"TCP":   true,
-	"TLS":   true,
-	"TTL":   true,
-	"UDP":   true,
-	"UI":    true,
-	"UID":   true,
-	"UUID":  true,
-	"URI":   true,
-	"URL":   true,
-	"UTF8":  true,
-	"VM":    true,
-	"XML":   true,
-	"XSRF":  true,
-	"XSS":   true,
 }
 
 func removeNS(s string) string {

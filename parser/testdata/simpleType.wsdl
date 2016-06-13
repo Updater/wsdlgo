@@ -29,6 +29,12 @@
           <xsd:pattern value='[a-zA-Z0-9]{18}'/>
         </xsd:restriction>
       </xsd:simpleType>
+      <xsd:simpleType name="uniqueId">
+        <xsd:restriction base="xsd:string">
+          <xsd:enumeration value="1"/>
+          <xsd:enumeration value="Html"/>
+        </xsd:restriction>
+      </xsd:simpleType>
       <xsd:simpleType name="contracttype">
         <xsd:list>
           <xsd:simpleType>

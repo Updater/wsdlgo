@@ -11,6 +11,23 @@ type arrayOfProducts struct {
 	Product []string `xml:"Product"`
 }
 
+type arrayOfProductsprod struct {
+	Product []string `xml:"Product"`
+}
+
+type arrayOfProductsprodReqNil struct {
+	*arrayOfProductsprod
+}
+
+// MarshalXML satisfies the XML Marshaler interface for type arrayOfProductsprodReqNil.
+func (t arrayOfProductsprodReqNil) MarshalXML(e *xml.Encoder, s xml.StartElement) error {
+	if t.arrayOfProductsprod == nil {
+		return e.EncodeElement("", s)
+	}
+
+	return e.EncodeElement(t, s)
+}
+
 type dateTimeReqNil struct {
 	*time.Time
 }
@@ -67,12 +84,12 @@ type orderStatus struct {
 }
 
 type orderStatusInfo struct {
-	MON           *string   `xml:"MON"`
-	Package       *package_ `xml:"Package"`
-	SessionId     *string   `xml:"sessionId"`
-	Status        *bool     `xml:"Status"`
-	StatusCode    *string   `xml:"StatusCode"`
-	StatusMessage []string  `xml:"StatusMessage"`
+	MON           *string      `xml:"MON"`
+	Package       *packageType `xml:"Package"`
+	SessionID     *string      `xml:"sessionId"`
+	Status        *bool        `xml:"Status"`
+	StatusCode    *string      `xml:"StatusCode"`
+	StatusMessage []string     `xml:"StatusMessage"`
 }
 
 type orderStatusResponse struct {
@@ -81,23 +98,24 @@ type orderStatusResponse struct {
 	VoiceOrderid *string   `xml:"VoiceOrderid"`
 }
 
-type package_ struct {
+type packageType struct {
 	Usoc *string `xml:"usoc,attr"`
 }
 
 type pingResponseType struct {
-	TransactionId *string      `xml:"TransactionId"`
+	TransactionID *string      `xml:"TransactionId"`
 	Version       stringReqNil `xml:"Version"`
 }
 
 type serviceProductType struct {
-	ServiceProducts *arrayOfProducts `xml:"ServiceProducts"`
-	Version         stringReqNil     `xml:"Version"`
+	ServiceProducts  *arrayOfProducts          `xml:"ServiceProducts"`
+	ServiceProducts1 arrayOfProductsprodReqNil `xml:"ServiceProducts.1"`
+	Version          stringReqNil              `xml:"Version"`
 }
 
 type serviceProductTypeExt struct {
-	Nonboth *string `xml:"nonboth"`
 	*serviceProductType
+	Nonboth *string `xml:"nonboth"`
 }
 
 type serviceStatus struct {

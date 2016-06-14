@@ -57,6 +57,7 @@ type xsdImport struct {
 }
 
 // xsdElement represents a Schema element.
+// https://www.w3.org/TR/2012/REC-xmlschema11-1-20120405/#cElement_Declarations
 type xsdElement struct {
 	XMLName     xml.Name        `xml:"element"`
 	Name        string          `xml:"name,attr"`
@@ -72,114 +73,67 @@ type xsdElement struct {
 }
 
 func (x xsdElement) doMap(p interface{}) bool {
-	// TODO handle interfaces and slice of bytes
-	lt := toGoPointerType(makeUnexported(removeNS(x.Type)))
-	if lt == "interface{}" || lt == "[]byte" {
-		return false
-	}
-
 	switch u := p.(type) {
-	case map[string]*sStruct:
-		var t string
-
+	case mapofStructs:
 		if x.ComplexType != nil {
 			if x.ComplexType.isEmpty() {
 				break
 			}
 
-			t = replaceReservedWords(makeUnexported(removeNS(x.Name)))
-			// will eventually recurse back to this function but with ComplexType elements
 			doMap([]mapper{x.ComplexType}, u)
-		}
 
-		s := sStruct{Fields: make(map[string]*sField)}
+			if s := u.add(x.Name, sStruct{Name: x.Name}); s != "" {
+				if x.ComplexType != nil {
+					m := u[s]
+					doMap([]mapper{x.ComplexType}, &m)
+				}
+				return true
+			}
+		}
 
 		if x.Nillable && !(x.MinOccurs == "0") {
-			t = toGoType(makeUnexported(removeNS(x.Type + "ReqNil")))
-			s.Fields[t] = &sField{
-				Type: lt,
-			}
-
-			s.NillableRequiredType = true
+			u.add(x.Type, sStruct{
+				Name:                 x.Type,
+				NillableRequiredType: true,
+			})
+			return true
 		}
 
-		if t == "" {
-			break
-		}
-
-		if _, ok := u[t]; !ok {
-			u[t] = &s
-
-			if x.ComplexType != nil {
-				doMap([]mapper{x.ComplexType}, u[t])
-			}
-		}
-
-	case map[string]*sMessage:
+	case mapofMessages:
 		if x.ComplexType != nil || x.Name == "" || x.Type == "" {
 			break
 		}
 
-		if v, ok := u[x.Name]; ok {
-			u[x.Name] = &sMessage{
-				XMLField: sField{
-					Name: "XMLName",
-					Type: "xml.Name",
-					Tag:  v.XMLField.Tag,
-				},
-				Type: toGoPointerType(makeUnexported(removeNS(x.Type))),
-			}
+		if b := u.add(x.Name, x.Type); b {
+			return true
 		}
 
 	case *sStruct:
-		if x.Name == "" {
-			break
+		if x.Type == "" && x.ComplexType != nil && !x.ComplexType.isEmpty() {
+			x.Type = x.Name
+		}
+
+		s := sField{
+			Name: x.Name,
+			Type: x.Type,
+		}
+
+		if x.Nillable && !(x.MinOccurs == "0") {
+			s.required = true
+			s.nillable = true
+		}
+
+		if strings.ToLower(x.MaxOccurs) == "unbounded" {
+			s.array = true
 		}
 
 		if x.Type == "" && x.ComplexType != nil && !x.ComplexType.isEmpty() {
-			x.Type = makeUnexported(x.Name)
+			s.pointer = true
 		}
 
-		if x.Type == "" {
-			break
+		if b := u.Fields.add(x.Name, s); b {
+			return true
 		}
-
-		n := makeExported(normalize(capitalizeMultipleWord(removeNS(x.Name))))
-		t := toGoPointerType(makeUnexported(removeNS(x.Type)))
-
-		if x.Nillable && !(x.MinOccurs == "0") {
-			t = toGoType(makeUnexported(removeNS(x.Type + "ReqNil")))
-		} else if strings.ToLower(x.MaxOccurs) == "unbounded" {
-			t = "[]" + toGoType(makeUnexported(removeNS(x.Type)))
-		} else if x.Type == "" && x.ComplexType != nil && !x.ComplexType.isEmpty() {
-			t = toGoPointerType(makeUnexported(removeNS(x.Name)))
-			n = ""
-		}
-
-		if convertPointerToValue(t) == "" {
-			break
-		}
-
-		if u.Fields == nil {
-			u.Fields = make(map[string]*sField)
-		}
-
-		if _, ok := u.Fields[n]; !ok {
-			nf := makeExported(n)
-			var tg string
-
-			if nf != "" {
-				tg = "`" + `xml:"` + x.Name + `"` + "`"
-			}
-
-			u.Fields[n] = &sField{
-				Name: nf,
-				Type: t,
-				Tag:  tg,
-			}
-		}
-
-		return true
 	}
 
 	return false
@@ -212,7 +166,7 @@ func (x xsdComplexType) doMap(p interface{}) bool {
 	a = append(a, x.Attributes...)
 
 	switch u := p.(type) {
-	case map[string]*sStruct:
+	case mapofStructs:
 		var m []mapper
 		for _, v := range e {
 			m = append(m, v)
@@ -223,24 +177,9 @@ func (x xsdComplexType) doMap(p interface{}) bool {
 		m = append(m, x.ComplexContent.Extension)
 		doMap(m, u)
 
-		if x.Name == "" {
-			break
-		}
-
-		t := replaceReservedWords(makeUnexported(removeNS(x.Name)))
-		if t == "" {
-			break
-		}
-
-		s := sStruct{
-			Fields: map[string]*sField{
-				t: &sField{},
-			},
-		}
-
-		if _, ok := u[t]; !ok {
-			u[t] = &s
-			doMap(m, u[t])
+		if s := u.add(x.Name, sStruct{Name: x.Name}); s != "" {
+			ps := u[s]
+			doMap(m, &ps)
 		}
 
 		return true
@@ -305,21 +244,12 @@ type xsdExtension struct {
 }
 
 func (x xsdExtension) doMap(p interface{}) bool {
-	if x.Base == "" {
-		return false
-	}
-
 	switch u := p.(type) {
 	case *sStruct:
-		if u.Fields == nil {
-			u.Fields = make(map[string]*sField)
-		}
-
-		if _, ok := u.Fields[x.Base]; !ok {
-			u.Fields[x.Base] = &sField{
-				Name: toGoPointerType(makeUnexported(removeNS(x.Base))),
-			}
-		}
+		u.Fields.add(x.Base, sField{
+			Type:    x.Base,
+			pointer: true,
+		})
 
 		return true
 	}
@@ -339,34 +269,11 @@ type xsdAttribute struct {
 func (x xsdAttribute) doMap(p interface{}) bool {
 	switch u := p.(type) {
 	case *sStruct:
-		if x.Name == "" {
-			break
-		}
-
-		n := makeExported(replaceReservedWords(removeNS(x.Name)))
-		t := toGoPointerType(makeUnexported(removeNS(x.Type)))
-
-		if convertPointerToValue(t) == "" {
-			break
-		}
-
-		if u.Fields == nil {
-			u.Fields = make(map[string]*sField)
-		}
-
-		if _, ok := u.Fields[n]; !ok {
-			n := makeExported(removeNS(n))
-			var tg string
-			if n != "" {
-				tg = "`" + `xml:"` + x.Name + `,attr"` + "`"
-			}
-
-			u.Fields[n] = &sField{
-				Name: n,
-				Type: t,
-				Tag:  tg,
-			}
-		}
+		u.Fields.add(x.Name, sField{
+			Name: x.Name,
+			Type: x.Type,
+			attr: true,
+		})
 
 		return true
 	}
@@ -383,35 +290,24 @@ type xsdSimpleType struct {
 }
 
 func (x xsdSimpleType) doMap(p interface{}) bool {
-	if x.Name == "" {
-		return false
-	}
-
-	t := sType{
-		Name: makeUnexported(replaceReservedWords(x.Name)),
-	}
-
 	switch u := p.(type) {
-	case map[string]*sType:
-		t.UnderlyingType = makeUnexported(toGoType(removeNS(x.Restriction.Base)))
+	case mapofTypes:
 
 		for _, st := range x.List.SimpleType {
-			if t.UnderlyingType != "" {
+			if x.Restriction.Base != "" {
 				break
 			}
 
-			st.Name = t.Name
+			st.Name = x.Name
 			doMap([]mapper{st}, u)
 		}
 
-		if t.UnderlyingType == "" {
-			break
-		}
-		if _, ok := u[t.Name]; !ok {
-			u[t.Name] = &t
-		}
+		u.add(sType{
+			Name:           x.Name,
+			UnderlyingType: x.Restriction.Base,
+		})
 
-	case map[string]*sConst:
+	case mapofConsts:
 		var rv []xsdRestrictionValue
 		rv = append(rv, x.Restriction.Enumeration...)
 		for _, l := range x.List.SimpleType {
@@ -419,15 +315,10 @@ func (x xsdSimpleType) doMap(p interface{}) bool {
 		}
 
 		for _, e := range rv {
-			n := makeUnexported(replaceReservedWords(x.Name)) + lint(normalize(e.Value))
-
-			if _, ok := u[n]; !ok {
-				u[n] = &sConst{
-					Name:  n,
-					Type:  t.Name,
-					Value: e.Value,
-				}
-			}
+			u.add(sConst{
+				Type:  x.Name,
+				Value: e.Value,
+			})
 		}
 
 		return true

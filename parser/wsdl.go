@@ -16,12 +16,6 @@ type wsdl struct {
 	Service         []wsdlService  `xml:"http://schemas.xmlsoap.org/wsdl/ service"`
 }
 
-func addPackageImport(s string, m map[string]string) {
-	if _, ok := m[s]; !ok {
-		m[s] = s
-	}
-}
-
 func (w *wsdl) doMap(p interface{}) bool {
 	switch u := p.(type) {
 	case *element:
@@ -37,23 +31,24 @@ func (w *wsdl) doMap(p interface{}) bool {
 		// Import handling logic
 		for _, s := range u.Structs {
 			if s.NillableRequiredType {
-				addPackageImport("encoding/xml", u.Imports)
+				u.Imports.add("encoding/xml")
 			}
 
 			for _, f := range s.Fields {
 				if strings.HasPrefix(convertPointerToValue(f.Type), "time.") {
-					addPackageImport("time", u.Imports)
+					u.Imports.add("time")
 				}
 
 				if f.Type == "xml.Name" {
-					addPackageImport("encoding/xml", u.Imports)
+					u.Imports.add("encoding/xml")
 				}
 			}
 		}
 
 		for _, s := range u.Messages {
 			if s.Type != "" {
-				addPackageImport("encoding/xml", u.Imports)
+				u.Imports.add("encoding/xml")
+				break
 			}
 		}
 
@@ -96,15 +91,10 @@ func (x wsdlMessage) doMap(p interface{}) bool {
 		if len(x.Parts) == 0 {
 			break
 		}
+
 		n := removeNS(x.Parts[0].Element)
 		tg := "`" + `xml:"` + x.Parts[0].Partns + ` ` + n + `"` + "`"
-		if _, ok := u.Messages[n]; !ok {
-			u.Messages[n] = &sMessage{
-				XMLField: sField{
-					Tag: tg,
-				},
-			}
-		}
+		u.Messages.add(n, tg)
 		return true
 	}
 

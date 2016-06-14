@@ -21,9 +21,9 @@ func (m mapofConsts) add(s sConst) bool {
 }
 
 func (s *sConst) resolveName() {
-	s.Name = lintName(replaceReservedWords(s.Type + s.Value))
+	s.Name = makeUnexported(lintName(replaceReservedWords(s.Type + s.Value)))
 }
 
 func (s *sConst) resolveType() {
-	s.Type = lintName(s.Type)
+	s.Type = makeUnexported(lintName(s.Type))
 }

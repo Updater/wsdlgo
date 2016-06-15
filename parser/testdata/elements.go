@@ -3,8 +3,35 @@
 package types
 
 import (
+	"encoding/xml"
 	"time"
 )
+
+type decimalReqNil struct {
+	*float64
+}
+
+// MarshalXML satisfies the XML Marshaler interface for type decimalReqNil.
+func (t decimalReqNil) MarshalXML(e *xml.Encoder, s xml.StartElement) error {
+	if t.float64 == nil {
+		return e.EncodeElement("", s)
+	}
+
+	return e.EncodeElement(t, s)
+}
+
+type doubleReqNil struct {
+	*float64
+}
+
+// MarshalXML satisfies the XML Marshaler interface for type doubleReqNil.
+func (t doubleReqNil) MarshalXML(e *xml.Encoder, s xml.StartElement) error {
+	if t.float64 == nil {
+		return e.EncodeElement("", s)
+	}
+
+	return e.EncodeElement(t, s)
+}
 
 type echoResponse struct {
 	Attrint    *int32       `xml:"attr-int,attr"`

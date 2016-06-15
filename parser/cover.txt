@@ -1,4 +1,4 @@
-Tested On 06/13/16 01:34:53 PM EDT
+Tested On 06/14/16 04:08:16 PM EDT
 
 github.com/Bridgevine/wsdlgo/parser/generator.go:30:	Write			57.1%
 github.com/Bridgevine/wsdlgo/parser/generator.go:44:	populateElement		84.6%
@@ -22,7 +22,7 @@ github.com/Bridgevine/wsdlgo/parser/sConst.go:27:	resolveType		100.0%
 github.com/Bridgevine/wsdlgo/parser/sField.go:17:	add			100.0%
 github.com/Bridgevine/wsdlgo/parser/sField.go:30:	resolveName		100.0%
 github.com/Bridgevine/wsdlgo/parser/sField.go:38:	resolveType		100.0%
-github.com/Bridgevine/wsdlgo/parser/sField.go:61:	resolveTag		100.0%
+github.com/Bridgevine/wsdlgo/parser/sField.go:56:	resolveTag		100.0%
 github.com/Bridgevine/wsdlgo/parser/sImport.go:7:	add			83.3%
 github.com/Bridgevine/wsdlgo/parser/sMessage.go:10:	add			100.0%
 github.com/Bridgevine/wsdlgo/parser/sStruct.go:11:	add			100.0%

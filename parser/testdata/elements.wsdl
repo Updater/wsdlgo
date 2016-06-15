@@ -16,6 +16,8 @@
       <xs:element name="anyType" nillable="true" type="xs:anyType" />
       <xs:element name="anyURI" nillable="true" type="xs:anyURI" />
       <xs:element name="base64Binary" nillable="true" type="xs:base64Binary" />
+      <xs:element name="decimal" nillable="true" type="xs:decimal"/>
+      <xs:element name="double" nillable="true" type="xs:double"/>
       <xsd:element name="echoele">
         <xsd:complexType>
           <xsd:sequence>

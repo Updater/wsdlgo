@@ -113,6 +113,12 @@
                     <xsd:element nillable="true" name="Version" type="xsd:string"></xsd:element>
                 </xsd:sequence>
             </xsd:complexType>
+            <s:complexType name="Time">
+                <s:sequence>
+                    <s:element minOccurs="1" maxOccurs="1" name="Hour" type="xs:unsignedByte" />
+                    <s:element minOccurs="1" maxOccurs="1" name="Minute" type="xs:unsignedByte" />
+                </s:sequence>
+            </s:complexType>
         </xsd:schema>
     </types>
 </definitions>

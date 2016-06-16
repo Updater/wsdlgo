@@ -1,4 +1,4 @@
-Tested On 06/15/16 05:14:44 PM EDT
+Tested On 06/16/16 09:37:04 AM EDT
 
 github.com/Bridgevine/wsdlgo/parser/generator.go:30:	Write			57.1%
 github.com/Bridgevine/wsdlgo/parser/generator.go:44:	populateElement		84.6%

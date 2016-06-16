@@ -43,3 +43,9 @@ type pingIDInMessage struct {
 
 	*iD
 }
+
+type uniqueIDMessage struct {
+	XMLName xml.Name `xml:" UniqueId"`
+
+	*uniqueID
+}

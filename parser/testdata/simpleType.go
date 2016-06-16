@@ -38,7 +38,7 @@ type ruby struct {
 	Myversion *myversion `xml:"myversion"`
 }
 
-type pingIDIn struct {
+type pingIDInMessage struct {
 	XMLName xml.Name `xml:"http://www.test.com/test/ ping_id_in"`
 
 	*iD

@@ -138,6 +138,11 @@ func (t stringReqNil) MarshalXML(e *xml.Encoder, s xml.StartElement) error {
 	return e.EncodeElement(t, s)
 }
 
+type timeType struct {
+	Hour   *byte `xml:"Hour"`
+	Minute *byte `xml:"Minute"`
+}
+
 type version struct {
 	OrderStatus   []orderStatus `xml:"OrderStatus"`
 	VersionNumber *string       `xml:"VersionNumber"`

@@ -17,7 +17,7 @@ func (m mapofMessages) add(i string, s string) bool {
 		return false
 	}
 
-	i = makeUnexported(lintName(removeNS(i)))
+	i = makeUnexported(lintName(removeNS(i + "Message")))
 
 	if v, ok := m[i]; ok {
 		m[i] = sMessage{

@@ -34,7 +34,7 @@ func (s *sStruct) resolveName() {
 		return
 	}
 
-	s.Name = toGoType(makeUnexported(lintName(removeNS(s.Name))))
+	s.Name = toGoType(replaceReservedWords(makeUnexported(lintName(removeNS(s.Name)))))
 }
 
 func (s *sStruct) resolveFields() {

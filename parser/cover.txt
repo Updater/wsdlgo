@@ -1,4 +1,4 @@
-Tested On 06/16/16 09:37:04 AM EDT
+Tested On 06/17/16 10:43:09 AM EDT
 
 github.com/Bridgevine/wsdlgo/parser/generator.go:30:	Write			57.1%
 github.com/Bridgevine/wsdlgo/parser/generator.go:44:	populateElement		84.6%
@@ -35,11 +35,16 @@ github.com/Bridgevine/wsdlgo/parser/wsdl.go:19:		doMap			90.5%
 github.com/Bridgevine/wsdlgo/parser/wsdl.go:88:		doMap			75.0%
 github.com/Bridgevine/wsdlgo/parser/xsd.go:23:		doMap			92.9%
 github.com/Bridgevine/wsdlgo/parser/xsd.go:75:		doMap			96.7%
-github.com/Bridgevine/wsdlgo/parser/xsd.go:157:		doMap			100.0%
-github.com/Bridgevine/wsdlgo/parser/xsd.go:203:		hasElement		100.0%
-github.com/Bridgevine/wsdlgo/parser/xsd.go:207:		hasAttribute		100.0%
-github.com/Bridgevine/wsdlgo/parser/xsd.go:211:		isEmpty			100.0%
-github.com/Bridgevine/wsdlgo/parser/xsd.go:246:		doMap			100.0%
-github.com/Bridgevine/wsdlgo/parser/xsd.go:269:		doMap			100.0%
-github.com/Bridgevine/wsdlgo/parser/xsd.go:292:		doMap			93.3%
-total:							(statements)		92.4%
+github.com/Bridgevine/wsdlgo/parser/xsd.go:156:		doMap			100.0%
+github.com/Bridgevine/wsdlgo/parser/xsd.go:202:		hasElement		100.0%
+github.com/Bridgevine/wsdlgo/parser/xsd.go:206:		hasAttribute		100.0%
+github.com/Bridgevine/wsdlgo/parser/xsd.go:210:		isEmpty			100.0%
+github.com/Bridgevine/wsdlgo/parser/xsd.go:232:		isEmpty			100.0%
+github.com/Bridgevine/wsdlgo/parser/xsd.go:243:		isEmpty			100.0%
+github.com/Bridgevine/wsdlgo/parser/xsd.go:255:		doMap			100.0%
+github.com/Bridgevine/wsdlgo/parser/xsd.go:268:		hasElement		100.0%
+github.com/Bridgevine/wsdlgo/parser/xsd.go:272:		hasAttribute		100.0%
+github.com/Bridgevine/wsdlgo/parser/xsd.go:276:		isEmpty			100.0%
+github.com/Bridgevine/wsdlgo/parser/xsd.go:290:		doMap			100.0%
+github.com/Bridgevine/wsdlgo/parser/xsd.go:313:		doMap			93.3%
+total:							(statements)		92.5%

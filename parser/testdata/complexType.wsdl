@@ -119,6 +119,20 @@
                     <s:element minOccurs="1" maxOccurs="1" name="Minute" type="xs:unsignedByte" />
                 </s:sequence>
             </s:complexType>
+            <xs:complexType name="BaseRequestMessage" abstract="true">
+                <xs:attribute form="qualified" name="TransactionID" type="s:int" use="required" />
+            </xs:complexType>
+            <xs:element name="GetOfferAvailabilityRequest">
+                <xs:complexType>
+                    <xs:complexContent mixed="false">
+                        <xs:extension base="BaseRequestMessage">
+                            <xs:sequence>
+                                <xs:element minOccurs="1" maxOccurs="1" name="Source" nillable="true" type="s:string" />
+                            </xs:sequence>
+                        </xs:extension>
+                    </xs:complexContent>
+                </xs:complexType>
+            </xs:element>
         </xsd:schema>
     </types>
 </definitions>

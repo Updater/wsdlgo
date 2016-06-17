@@ -17,7 +17,7 @@ func (t decimalReqNil) MarshalXML(e *xml.Encoder, s xml.StartElement) error {
 		return e.EncodeElement("", s)
 	}
 
-	return e.EncodeElement(t, s)
+	return e.EncodeElement(t.float64, s)
 }
 
 type doubleReqNil struct {
@@ -30,7 +30,7 @@ func (t doubleReqNil) MarshalXML(e *xml.Encoder, s xml.StartElement) error {
 		return e.EncodeElement("", s)
 	}
 
-	return e.EncodeElement(t, s)
+	return e.EncodeElement(t.float64, s)
 }
 
 type echoResponse struct {

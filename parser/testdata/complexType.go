@@ -25,7 +25,11 @@ func (t arrayOfProductsprodReqNil) MarshalXML(e *xml.Encoder, s xml.StartElement
 		return e.EncodeElement("", s)
 	}
 
-	return e.EncodeElement(t, s)
+	return e.EncodeElement(t.arrayOfProductsprod, s)
+}
+
+type baseRequestMessage struct {
+	TransactionID *int32 `xml:"TransactionID,attr"`
 }
 
 type dateTimeReqNil struct {
@@ -38,7 +42,12 @@ func (t dateTimeReqNil) MarshalXML(e *xml.Encoder, s xml.StartElement) error {
 		return e.EncodeElement("", s)
 	}
 
-	return e.EncodeElement(t, s)
+	return e.EncodeElement(t.Time, s)
+}
+
+type getOfferAvailabilityRequest struct {
+	*baseRequestMessage
+	Source stringReqNil `xml:"Source"`
 }
 
 type getOrderStatusResponse struct {
@@ -60,7 +69,7 @@ func (t intReqNil) MarshalXML(e *xml.Encoder, s xml.StartElement) error {
 		return e.EncodeElement("", s)
 	}
 
-	return e.EncodeElement(t, s)
+	return e.EncodeElement(t.int32, s)
 }
 
 type myelements struct {
@@ -135,7 +144,7 @@ func (t stringReqNil) MarshalXML(e *xml.Encoder, s xml.StartElement) error {
 		return e.EncodeElement("", s)
 	}
 
-	return e.EncodeElement(t, s)
+	return e.EncodeElement(t.string, s)
 }
 
 type timeType struct {

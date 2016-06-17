@@ -81,7 +81,6 @@ func (x xsdElement) doMap(p interface{}) bool {
 			}
 
 			doMap([]mapper{x.ComplexType}, u)
-
 			if s := u.add(x.Name, sStruct{Name: x.Name}); s != "" {
 				if x.ComplexType != nil {
 					m := u[s]
@@ -176,7 +175,6 @@ func (x xsdComplexType) doMap(p interface{}) bool {
 		}
 		m = append(m, x.ComplexContent.Extension)
 		doMap(m, u)
-
 		if s := u.add(x.Name, sStruct{Name: x.Name}); s != "" {
 			ps := u[s]
 			doMap(m, &ps)
@@ -192,6 +190,7 @@ func (x xsdComplexType) doMap(p interface{}) bool {
 		for _, v := range a {
 			m = append(m, v)
 		}
+		m = append(m, x.ComplexContent.Extension)
 		doMap(m, u)
 
 		return true
@@ -209,7 +208,9 @@ func (x xsdComplexType) hasAttribute() bool {
 }
 
 func (x xsdComplexType) isEmpty() bool {
-	return !(x.hasElement() || x.hasAttribute())
+	return !(x.hasElement() || x.hasAttribute()) &&
+		x.SimpleContent.isEmpty() &&
+		x.ComplexContent.isEmpty()
 }
 
 // xsdGroup element is used to define a group of elements to be used in complex type definitions.
@@ -228,11 +229,19 @@ type xsdComplexContent struct {
 	Extension xsdExtension `xml:"extension"`
 }
 
+func (x xsdComplexContent) isEmpty() bool {
+	return x.Extension.isEmpty()
+}
+
 // xsdSimpleContent element contains extensions or restrictions on a text-only
 // complex type or on a simple type as content and contains no elements.
 type xsdSimpleContent struct {
 	XMLName   xml.Name     `xml:"simpleContent"`
 	Extension xsdExtension `xml:"extension"`
+}
+
+func (x xsdSimpleContent) isEmpty() bool {
+	return x.Extension.isEmpty()
 }
 
 // xsdExtension element extends an existing simpleType or complexType element.
@@ -254,6 +263,18 @@ func (x xsdExtension) doMap(p interface{}) bool {
 		return true
 	}
 	return false
+}
+
+func (x xsdExtension) hasElement() bool {
+	return len(x.Sequence) > 0
+}
+
+func (x xsdExtension) hasAttribute() bool {
+	return len(x.Attributes) > 0
+}
+
+func (x xsdExtension) isEmpty() bool {
+	return !(x.hasElement() || x.hasAttribute())
 }
 
 // xsdAttribute represent an element attribute. Simple elements cannot have

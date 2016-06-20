@@ -116,6 +116,11 @@ type pingResponseType struct {
 	Version       stringReqNil `xml:"Version"`
 }
 
+type result struct {
+	*string
+	Code *int32 `xml:"Code,attr"`
+}
+
 type serviceProductType struct {
 	ServiceProducts  *arrayOfProducts          `xml:"ServiceProducts"`
 	ServiceProducts1 arrayOfProductsprodReqNil `xml:"ServiceProducts.1"`

@@ -133,6 +133,13 @@
                     </xs:complexContent>
                 </xs:complexType>
             </xs:element>
+            <s:complexType name="Result">
+                <s:simpleContent>
+                    <s:extension base="s:string">
+                        <s:attribute name="Code" type="s:int" use="required" />
+                    </s:extension>
+                </s:simpleContent>
+            </s:complexType>
         </xsd:schema>
     </types>
 </definitions>

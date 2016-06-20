@@ -159,10 +159,13 @@ func (x xsdComplexType) doMap(p interface{}) bool {
 	e = append(e, x.Choice...)
 	e = append(e, x.SequenceChoice...)
 	e = append(e, x.All...)
+	e = append(e, x.SimpleContent.Extension.Sequence...)
 	e = append(e, x.ComplexContent.Extension.Sequence...)
 
 	var a []xsdAttribute
 	a = append(a, x.Attributes...)
+	a = append(a, x.SimpleContent.Extension.Attributes...)
+	a = append(a, x.ComplexContent.Extension.Attributes...)
 
 	switch u := p.(type) {
 	case mapofStructs:
@@ -173,8 +176,10 @@ func (x xsdComplexType) doMap(p interface{}) bool {
 		for _, v := range a {
 			m = append(m, v)
 		}
+		m = append(m, x.SimpleContent.Extension)
 		m = append(m, x.ComplexContent.Extension)
 		doMap(m, u)
+
 		if s := u.add(x.Name, sStruct{Name: x.Name}); s != "" {
 			ps := u[s]
 			doMap(m, &ps)
@@ -190,6 +195,7 @@ func (x xsdComplexType) doMap(p interface{}) bool {
 		for _, v := range a {
 			m = append(m, v)
 		}
+		m = append(m, x.SimpleContent.Extension)
 		m = append(m, x.ComplexContent.Extension)
 		doMap(m, u)
 

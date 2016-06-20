@@ -50,8 +50,8 @@ package {{.Name}}
 		{{if $e.NillableRequiredType}}
 			// MarshalXML satisfies the XML Marshaler interface for type {{$i}}.
 			func (t {{$i}}) MarshalXML(e *xml.Encoder, s xml.StartElement) error {
-				{{range $e.Fields -}}
-					if t.{{.Type | removePackage | convertPointerToValue}} == nil {
+				{{range $e.Fields}}{{$t := .Type | removePackage | convertPointerToValue -}}
+					if t.{{$t}} == nil {
 						return e.EncodeElement("", s)
 					}
 
@@ -61,7 +61,7 @@ package {{.Name}}
 							return e.EncodeElement("", s)
 						}
 					{{end}}
-					return e.EncodeElement(t, s)
+					return e.EncodeElement(t.{{$t}}, s)
 				{{- end}}
 			}
 		{{end}}

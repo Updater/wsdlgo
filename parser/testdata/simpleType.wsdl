@@ -3,6 +3,7 @@
   xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" 
   xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
   xmlns:tns="urn:example.com:simpletype" targetNamespace="urn:example.com:simpletype" 
+  xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" 
   xmlns="http://schemas.xmlsoap.org/wsdl/">
   <types>
     <xsd:schema targetNamespace="urn:example.com:simpletype">
@@ -23,6 +24,7 @@
         </xsd:restriction>
       </xsd:simpleType>
       <xsd:element name="ping_id_in" type="tns:ID"/>
+      <xsd:element name="UniqueId" type="tns:UniqueId"/>
       <xsd:simpleType name="ID">
         <xsd:restriction base="xsd:string">
           <xsd:length value="18"/>
@@ -69,6 +71,9 @@
   <message name="versionmsg">
     <part name="myversion" element="tns:myversion"/>
   </message>
+  <wsdl:message name="GetUniqueIdSoapIn">
+    <wsdl:part name="request" element="tns:UniqueId" />
+  </wsdl:message>
   <portType name="ping_port_type">
     <operation name="ping">
       <input message="tns:ping_in"/>

@@ -217,6 +217,7 @@ var xsd2GoTypes = map[string]string{
 	"qname":              "string",
 	"nonnegativeinteger": "uint",
 	"gyearmonth":         "string",
+	"language":           "string",
 }
 
 func toGoType(s string) string {

@@ -26,7 +26,7 @@ func (m mapofMessages) add(i string, s string) bool {
 				Type: "xml.Name",
 				Tag:  v.XMLField.Tag,
 			},
-			Type: toGoPointerType(makeUnexported(removeNS(s))),
+			Type: toGoPointerType(lintName(makeUnexported(removeNS(s)))),
 		}
 		return true
 	}

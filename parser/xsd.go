@@ -108,10 +108,13 @@ func (x xsdElement) doMap(p interface{}) bool {
 		}
 
 	case *sStruct:
-		if x.Type == "" && x.ComplexType != nil && !x.ComplexType.isEmpty() {
+		if x.Type == "" && x.ComplexType == nil {
 			x.Type = x.Name
 		}
 
+		if x.Type == "" && x.ComplexType != nil && !x.ComplexType.isEmpty() {
+			x.Type = x.Name
+		}
 		s := sField{
 			Name: x.Name,
 			Type: x.Type,

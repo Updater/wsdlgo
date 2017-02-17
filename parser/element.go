@@ -9,9 +9,10 @@ type element struct {
 }
 
 const elementTmpl = `
-// generated with github.com/Bridgevine/wsdlgo; DO NOT EDIT
-
-package {{.Name}}
+// generated with github.com/Bridgevine/wsdlgo; DO NOT EDIT @ {{timestamp}}
+{{if ne .Name "" -}}
+	package {{.Name}}
+{{end}}
 
 {{with .Element.Imports}}
 	import (
@@ -65,6 +66,7 @@ package {{.Name}}
 				{{- end}}
 			}
 		{{end}}
+
 	{{end}}
 {{end}}
 
@@ -77,6 +79,33 @@ package {{.Name}}
 				{{end}}
 				{{$e.Type}}
 			}
+			{{if $e.Marshaler}}
+				func (t {{$i}}) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+					if t.{{$e.Type | convertPointerToValue}} == nil {
+						return nil
+					}
+
+					x := t.{{$e.Type | convertPointerToValue}}.{{$e.Struct}}
+
+					start.Name = xml.Name{Local: "{{$e.LocalName}}"}
+
+					return e.EncodeElement(struct {
+						{{range $i, $e := $e.NSFields -}}
+							{{$i}} {{$e.Type}} {{$e.Tag}}
+						{{end -}}
+						{{range $e.Fields -}}
+							{{.Name}} {{.Type}} {{.Tag}}
+						{{end}}
+					}{
+						{{range $i, $e := $e.NSFields -}}
+							{{$i}} : "{{$e.Name}}",
+						{{end -}}
+						{{range $e.Fields -}}
+							{{.Name}} : x.{{.Name}},
+						{{end}}
+					}, start)
+				}
+			{{end}}
 		{{end}}
 	{{end}}
 {{end}}`

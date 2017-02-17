@@ -6,12 +6,19 @@ import (
 	"log"
 	"os"
 
+	"regexp"
+
+	"strings"
+
 	"github.com/Bridgevine/wsdlgo/parser"
 )
 
 var (
 	pkg     = flag.String("p", "types", "Package under which code will be generated")
 	outFile = flag.String("o", "types.go", "File where the generated code will be saved")
+	cert    = flag.String("cer", "", "TLS certificate, optional")
+	certKey = flag.String("ck", "", "TLS certificate key, optional")
+	m       = flag.String("m", "n", "y/n to turn on/off the customer XML marshaler")
 )
 
 func init() {
@@ -37,15 +44,16 @@ func main() {
 		log.Fatalln("Output file cannot be the same WSDL file")
 	}
 
-	// Open wsdl file
-	f, err := os.Open(wp)
-	if err != nil {
-		log.Fatalln(err)
+	var files []string
+	for _, f := range os.Args {
+		if !regexp.MustCompile(`\w+.(xml|wsdl|xsd)`).MatchString(f) {
+			continue
+		}
+		files = append(files, f)
 	}
-	defer f.Close()
 
 	// generate code
-	g, err := parser.NewGenerator(f, *pkg)
+	g, err := parser.NewGenerator(files, *pkg, *cert, *certKey, strings.ToLower(*m) == "y")
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -58,6 +66,7 @@ func main() {
 			log.Fatalln(err)
 		}
 	}
+
 	g.Write(w)
 
 	log.Println("Done 💩")

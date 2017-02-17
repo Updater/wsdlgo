@@ -3,6 +3,16 @@ package parser
 type sMessage struct {
 	XMLField sField
 	Type     string
+
+	// Custom marshaler related fields.
+	Struct     string
+	StructType string
+	XmlTag     string
+	Fields     mapofFields
+	NSFields   mapofFields
+	Namespaces []string
+	LocalName  string
+	Marshaler  bool
 }
 
 type mapofMessages map[string]sMessage

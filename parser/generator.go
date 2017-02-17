@@ -2,11 +2,19 @@ package parser
 
 import (
 	"bytes"
+	"crypto/tls"
+	"encoding/json"
 	"encoding/xml"
+	"fmt"
 	"go/format"
 	"io"
+	"io/ioutil"
+	"net"
+	"net/http"
+	"regexp"
 	"strings"
 	"text/template"
+	"time"
 	"unicode"
 )
 
@@ -18,11 +26,13 @@ type Generator interface {
 // generator defines the struct for the WSDL code generator.
 type generator struct {
 	Name    string
-	WSDL    *wsdl
 	Element element
 
-	content []byte
-	reader  io.Reader
+	sources   []string
+	content   []byte
+	cert      string
+	certKey   string
+	marshaler bool
 }
 
 // Write implements the write behavior for Generator interface.
@@ -45,6 +55,7 @@ func (g *generator) populateElement() error {
 	f := template.FuncMap{
 		"removePackage":         removePackage,
 		"convertPointerToValue": convertPointerToValue,
+		"timestamp":             time.Now,
 	}
 
 	t := template.New("types")
@@ -63,43 +74,212 @@ func (g *generator) populateElement() error {
 	}
 
 	g.content = d.Bytes()
+
 	return nil
 }
 
+// loadCert is a helper function to load certificates from the specified file location.
+func loadCert(certFile, keyFile string) (*tls.Config, error) {
+	cert, err := tls.LoadX509KeyPair(certFile, keyFile)
+	if err != nil {
+		return nil, err
+	}
+
+	return &tls.Config{
+		MinVersion:   tls.VersionTLS10,
+		MaxVersion:   tls.VersionTLS12,
+		Certificates: []tls.Certificate{cert},
+	}, nil
+}
+
+func fetchXSDSchema(url, certFile, keyFile string) ([]byte, error) {
+	transport := &http.Transport{
+		Proxy: http.ProxyFromEnvironment,
+		Dial: (&net.Dialer{
+			Timeout:   30 * time.Second,
+			KeepAlive: 30 * time.Second,
+		}).Dial,
+		TLSHandshakeTimeout: 10 * time.Second,
+	}
+
+	var b []byte
+	c, err := loadCert(certFile, keyFile)
+	if err != nil {
+		return b, err
+	}
+	if c != nil {
+		transport.TLSClientConfig = c
+	}
+
+	client := &http.Client{
+		Transport: transport,
+		Timeout:   time.Second * 30,
+	}
+
+	res, err := client.Get(url)
+	if err != nil {
+		return b, err
+	}
+
+	return ioutil.ReadAll(res.Body)
+}
+
 func (g *generator) parse() error {
-	b := new(bytes.Buffer)
-	if _, err := b.ReadFrom(g.reader); err != nil {
-		return err
-	}
-
-	g.WSDL = new(wsdl)
-	if err := xml.Unmarshal(b.Bytes(), g.WSDL); err != nil {
-		return err
-	}
-
 	g.Element.Imports = make(mapofImports)
 	g.Element.Types = make(mapofTypes)
 	g.Element.Consts = make(mapofConsts)
 	g.Element.Structs = make(mapofStructs)
 	g.Element.Messages = make(mapofMessages)
-	doMap([]mapper{g.WSDL}, &g.Element)
+	for _, f := range g.sources {
+		xb, err := ioutil.ReadFile(f)
+		if err != nil {
+			return err
+		}
+
+		gwsdl := new(wsdl)
+		if err := xml.Unmarshal(xb, &gwsdl); err != nil {
+			return err
+		}
+
+		// Fetch schemas from the remote location.
+		var xsdSchemas []xsdSchema
+		var localNS, fieldNS string
+		for _, s := range gwsdl.Types.Schemas {
+			for _, i := range s.Imports {
+				b, err := fetchXSDSchema(i.SchemaLocation, g.cert, g.certKey)
+				if strings.Contains(i.Namespace, "localhost") {
+					localNS = i.Namespace
+				}
+				if strings.Contains(i.Namespace, "qwest") {
+					fieldNS = i.Namespace
+				}
+				if err != nil {
+					return err
+				}
+				var xs xsdSchema
+				if err := xml.Unmarshal(b, &xs); err != nil {
+					return err
+				}
+				xsdSchemas = append(xsdSchemas, xs)
+			}
+		}
+
+		if len(xsdSchemas) > 0 {
+			gwsdl.Types.Schemas = xsdSchemas
+		}
+
+		doMap([]mapper{gwsdl}, &g.Element)
+
+		// Update namespaces.
+		for m, sMsg := range g.Element.Messages {
+			sMsg.Namespaces = []string{localNS, fieldNS}
+			sMsg.Marshaler = g.marshaler
+			g.Element.Messages[m] = sMsg
+		}
+
+		if !g.marshaler {
+			continue
+		}
+		// Update a message a struct is related with,
+		// so we can build custom XMLMarshaler implementation on it.
+		if err := updateMessages(&g.Element, localNS, fieldNS); err != nil {
+			return err
+		}
+	}
 
 	return g.populateElement()
 }
 
+func updateMessages(e *element, localNS, fieldNS string) error {
+	for msg, sMsg := range e.Messages {
+		sStr, ok := e.Structs[convertPointerToValue(sMsg.Type)]
+		if !ok {
+			continue
+		}
+
+		hasOne := len(sStr.Fields) == 1
+		for k, f := range sStr.Fields {
+			if hasOne {
+				sMsg.Struct = k
+				sMsg.XmlTag = makeUnexported(k)
+				sMsg.StructType = makeUnexported(convertPointerToValue(f.Type))
+				break
+			}
+
+			if strings.ToLower(k) != strings.ToLower(convertPointerToValue(sMsg.Type)) {
+				continue
+			}
+			sMsg.Struct = k
+			sMsg.XmlTag = makeUnexported(k)
+			sMsg.StructType = makeUnexported(convertPointerToValue(f.Type))
+		}
+
+		sMsg.LocalName = fmt.Sprintf("%s:%s", namespaceToStr(localNS), convertPointerToValue(sMsg.Type))
+
+		e.Messages[msg] = sMsg
+	}
+
+	for msg, sMsg := range e.Messages {
+		sStr, ok := e.Structs[sMsg.StructType]
+		if !ok {
+			continue
+		}
+
+		var fields mapofFields
+		b, err := json.Marshal(sStr.Fields)
+		if err != nil {
+			return err
+		}
+		if err := json.Unmarshal(b, &fields); err != nil {
+			return err
+		}
+
+		// Update fields' XML tags.
+		for k, fld := range fields {
+			fld.Tag = fmt.Sprintf("`xml:\"%s>%s:%s\"`", makeUnexported(sMsg.Struct), namespaceToStr(fieldNS), fld.Name)
+			fields[k] = fld
+		}
+		sMsg.Fields = fields
+
+		// Expand fields with namespaces.
+		sMsg.NSFields = make(mapofFields)
+		for _, n := range []string{localNS, fieldNS} {
+			nstr := namespaceToStr(n)
+			sMsg.NSFields["XML"+nstr] = sField{Name: n, Tag: fmt.Sprintf("`xml:\"xmlns:%s,attr\"`", nstr), Type: "string"}
+		}
+
+		e.Messages[msg] = sMsg
+	}
+
+	return nil
+}
+
+func namespaceToStr(ns string) string {
+	matches := regexp.MustCompile(`(\w+)`).FindAllString(ns, -1)
+	if len(matches) == 0 {
+		return ""
+	}
+
+	match := matches[len(matches)-1]
+
+	return strings.ToLower(match[0:3])
+}
+
 // NewGenerator initializes a Generator interface implemented by generator type.
-func NewGenerator(r io.Reader, pkg string) (Generator, error) {
-	pkg = strings.TrimSpace(pkg)
-	if pkg == "" {
-		pkg = "types"
-	}
-
+func NewGenerator(files []string, pkg, cert, certKey string, marshaler bool) (Generator, error) {
+	var err error
 	g := generator{
-		reader: r,
-		Name:   pkg,
+		sources:   files,
+		Name:      pkg,
+		cert:      cert,
+		certKey:   certKey,
+		marshaler: marshaler,
 	}
 
-	err := g.parse()
+	if err := g.parse(); err != nil {
+		return &g, err
+	}
+
 	return &g, err
 }
 

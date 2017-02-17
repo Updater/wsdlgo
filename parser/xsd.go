@@ -2,6 +2,7 @@ package parser
 
 import (
 	"encoding/xml"
+	"strconv"
 	"strings"
 )
 
@@ -125,7 +126,8 @@ func (x xsdElement) doMap(p interface{}) bool {
 			s.nillable = true
 		}
 
-		if strings.ToLower(x.MaxOccurs) == "unbounded" {
+		maxOccurs, _ := strconv.Atoi(x.MaxOccurs)
+		if strings.HasPrefix(x.Name, "Array") || x.MaxOccurs == "unbounded" || maxOccurs > 1 {
 			s.array = true
 		}
 
@@ -322,7 +324,6 @@ type xsdSimpleType struct {
 func (x xsdSimpleType) doMap(p interface{}) bool {
 	switch u := p.(type) {
 	case mapofTypes:
-
 		for _, st := range x.List.SimpleType {
 			if x.Restriction.Base != "" {
 				break

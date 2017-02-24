@@ -29,12 +29,14 @@ func (w *wsdl) doMap(p interface{}) bool {
 		doMap(m, u)
 
 		// Import handling logic
-		for _, s := range u.Structs {
-			if s.NillableRequiredType {
+		for sn, sStr := range u.Structs {
+			if sStr.NillableRequiredType {
 				u.Imports.add("encoding/xml")
 			}
 
-			for _, f := range s.Fields {
+			fields := make(mapofFields)
+			for fn, f := range sStr.Fields {
+
 				if strings.HasPrefix(convertPointerToValue(f.Type), "time.") {
 					u.Imports.add("time")
 				}
@@ -42,6 +44,22 @@ func (w *wsdl) doMap(p interface{}) bool {
 				if f.Type == "xml.Name" {
 					u.Imports.add("encoding/xml")
 				}
+
+				if sn != "accessoryProductType1308" {
+					continue
+				}
+
+				// Expand base fields.
+				if f.Name != "" || f.Type == "*string" {
+					fields[fn] = f
+					continue
+				}
+
+				ty := convertPointerToValue(f.Type)
+
+				expandBaseTypes(fields, u.Structs, ty)
+				sStr.Fields = fields
+				u.Structs[sn] = sStr
 			}
 		}
 
@@ -56,6 +74,29 @@ func (w *wsdl) doMap(p interface{}) bool {
 	}
 
 	return false
+}
+
+func expandBaseTypes(fields mapofFields, allStructs mapofStructs, ty string) {
+	lookupStruct := func(tn string) sStruct {
+		for s, sStr := range allStructs {
+			if s == tn {
+				return sStr
+			}
+		}
+
+		return sStruct{}
+	}
+
+	sStr := lookupStruct(ty)
+	for fn, f := range sStr.Fields {
+		if f.Name == "" && f.Type != "*string" {
+			ty := convertPointerToValue(f.Type)
+			expandBaseTypes(fields, allStructs, ty)
+			continue
+		}
+
+		fields[fn] = f
+	}
 }
 
 // wsdlImport is the struct used for deserializing wsdl imports.

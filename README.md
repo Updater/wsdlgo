@@ -12,6 +12,11 @@ Usage: wsdlgo [options] service.wsdl
         File where the generated code will be saved (default "types.go")
   -p string
         Package under which code will be generated (default "types")
+It's possible to combine multiple WSDLs to produce a single output file.
+
+./wsdlgo -cer ../certs/cert.cer -ck ../certs/cert.key ContentService.wsdl
+Certificate and certificate key are optional.
+
 ```
 
 ### Influences

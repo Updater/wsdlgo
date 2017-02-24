@@ -1,5 +1,4 @@
 // generated with github.com/Bridgevine/wsdlgo; DO NOT EDIT
-
 package types
 
 import (

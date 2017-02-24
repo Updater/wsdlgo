@@ -187,7 +187,6 @@ func (g *generator) parse() error {
 			g.Element.Structs[s] = sStr
 		}
 
-		// TODO: can be moved up
 		if !g.marshaler {
 			continue
 		}

@@ -14,7 +14,7 @@ Usage: wsdlgo [options] service.wsdl
         Package under which code will be generated (default "types")
 It's possible to combine multiple WSDLs to produce a single output file.
 
-./wsdlgo -cer ../pi-centurylink/certs/cert.cer -ck ../pi-centurylink/certs/cert.key ContentService.wsdl ContentOrderService.wsdl ServiceOrderStatusService.wsdl
+./wsdlgo -cer ../certs/cert.cer -ck ../certs/cert.key ContentService.wsdl
 Certificate and certificate key are optional.
 
 ```

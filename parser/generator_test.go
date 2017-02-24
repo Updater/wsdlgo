@@ -34,7 +34,7 @@ func TestGenerator(t *testing.T) {
 
 	for index, tt := range tests {
 		if tt.wf != "" && tt.pf != "" {
-			g, err := parser.NewGenerator([]string{tt.wf}, "types", "", "")
+			g, err := parser.NewGenerator([]string{tt.wf}, "types", "", "", false)
 			if err != nil {
 				t.Fatalf("Test %d errored while opening xml file %s: %v", index, tt.wf, err)
 			}

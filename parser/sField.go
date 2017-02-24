@@ -1,9 +1,11 @@
 package parser
 
 type sField struct {
-	Name string
-	Type string
-	Tag  string
+	Name        string
+	Type        string
+	Tag         string
+	Struct      sStruct
+	InitialName string
 
 	attr     bool
 	pointer  bool
@@ -31,7 +33,7 @@ func (s *sField) resolveName(i string) {
 	if s.Name == "" {
 		return
 	}
-
+	s.InitialName = makeExported(normalize(removeNS(i)))
 	s.Name = makeExported(lintName(normalize(removeNS(i))))
 }
 

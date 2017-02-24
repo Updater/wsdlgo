@@ -1,15 +1,15 @@
 package parser
 
 type element struct {
-	Imports  mapofImports
-	Types    mapofTypes
-	Consts   mapofConsts
-	Structs  mapofStructs
-	Messages mapofMessages
+	Imports    mapofImports
+	Types      mapofTypes
+	Consts     mapofConsts
+	Structs    mapofStructs
+	Messages   mapofMessages
 }
 
 const elementTmpl = `
-// generated with github.com/Bridgevine/wsdlgo; DO NOT EDIT @ {{timestamp}}
+// generated with github.com/Bridgevine/wsdlgo; DO NOT EDIT
 {{if ne .Name "" -}}
 	package {{.Name}}
 {{end}}
@@ -67,6 +67,19 @@ const elementTmpl = `
 			}
 		{{end}}
 
+		{{if $e.Marshaler}}
+			func (t {{$i}}) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+				return e.EncodeElement(struct {
+					{{range $e.EncoderFields -}}
+						{{.Name}} {{.Type}} {{.Tag}}
+					{{end}}
+				}{
+					{{range $e.EncoderFields -}}
+						{{.Name}} : t.{{.Name}},
+					{{end}}
+				}, start)
+			}
+		{{end}}
 	{{end}}
 {{end}}
 

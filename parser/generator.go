@@ -177,12 +177,27 @@ func (g *generator) parse() error {
 			g.Element.Messages[m] = sMsg
 		}
 
+		for s, sStr := range g.Element.Structs {
+			if sStr.NillableRequiredType {
+				continue
+			}
+
+			sStr.Marshaler = g.marshaler
+			sStr.EncoderFields = sStr.Fields
+			g.Element.Structs[s] = sStr
+		}
+
+		// TODO: can be moved up
 		if !g.marshaler {
 			continue
 		}
 		// Update a message a struct is related with,
 		// so we can build custom XMLMarshaler implementation on it.
-		if err := updateMessages(&g.Element, localNS, fieldNS); err != nil {
+		if err := addMarshalerToMessages(&g.Element, localNS, fieldNS); err != nil {
+			return err
+		}
+
+		if err := addMarshalerToXMLStructs(&g.Element, localNS, fieldNS); err != nil {
 			return err
 		}
 	}
@@ -190,7 +205,57 @@ func (g *generator) parse() error {
 	return g.populateElement()
 }
 
-func updateMessages(e *element, localNS, fieldNS string) error {
+func addFields(allFields mapofFields, e *element, fields mapofFields) {
+	for f, fv := range fields {
+		if f != "" && fv.Type != "" {
+			allFields[f] = fv
+		} else {
+			n := convertPointerToValue(fv.Type)
+			str, ok := e.Structs[n]
+			if !ok {
+				continue
+			}
+			addFields(allFields, e, str.Fields)
+		}
+	}
+}
+
+func addMarshalerToXMLStructs(e *element, localNS, fieldNS string) error {
+	// Expand embedded fields.
+	for s, sStr := range e.Structs {
+		allFields := make(mapofFields)
+
+		addFields(allFields, e, sStr.Fields)
+
+		sStr.EncoderFields = allFields
+		e.Structs[s] = sStr
+
+	}
+
+	for s, sStr := range e.Structs {
+		var fields mapofFields
+		b, err := json.Marshal(sStr.EncoderFields)
+		if err != nil {
+			return err
+		}
+		if err := json.Unmarshal(b, &fields); err != nil {
+			return err
+		}
+
+		// Update fields' XML tags.
+		for k, fld := range fields {
+			fld.Tag = fmt.Sprintf("`xml:\"%s:%s\"`", namespaceToStr(fieldNS), fld.InitialName)
+			fields[k] = fld
+		}
+		sStr.EncoderFields = fields
+
+		e.Structs[s] = sStr
+	}
+
+	return nil
+}
+
+func addMarshalerToMessages(e *element, localNS, fieldNS string) error {
 	for msg, sMsg := range e.Messages {
 		sStr, ok := e.Structs[convertPointerToValue(sMsg.Type)]
 		if !ok {
@@ -201,7 +266,7 @@ func updateMessages(e *element, localNS, fieldNS string) error {
 		for k, f := range sStr.Fields {
 			if hasOne {
 				sMsg.Struct = k
-				sMsg.XmlTag = makeUnexported(k)
+				sMsg.XmlTag = extractTagName(f.Tag)
 				sMsg.StructType = makeUnexported(convertPointerToValue(f.Type))
 				break
 			}
@@ -210,7 +275,7 @@ func updateMessages(e *element, localNS, fieldNS string) error {
 				continue
 			}
 			sMsg.Struct = k
-			sMsg.XmlTag = makeUnexported(k)
+			sMsg.XmlTag = extractTagName(f.Tag)
 			sMsg.StructType = makeUnexported(convertPointerToValue(f.Type))
 		}
 
@@ -236,7 +301,7 @@ func updateMessages(e *element, localNS, fieldNS string) error {
 
 		// Update fields' XML tags.
 		for k, fld := range fields {
-			fld.Tag = fmt.Sprintf("`xml:\"%s>%s:%s\"`", makeUnexported(sMsg.Struct), namespaceToStr(fieldNS), fld.Name)
+			fld.Tag = fmt.Sprintf("`xml:\"%s>%s:%s\"`", sMsg.XmlTag, namespaceToStr(fieldNS), fld.InitialName)
 			fields[k] = fld
 		}
 		sMsg.Fields = fields
@@ -252,6 +317,15 @@ func updateMessages(e *element, localNS, fieldNS string) error {
 	}
 
 	return nil
+}
+
+func extractTagName(xmltag string) string {
+	matches := regexp.MustCompile(`\"(\w+)\"`).FindStringSubmatch(xmltag)
+	if len(matches) == 2 {
+		return matches[1]
+	}
+
+	return ""
 }
 
 func namespaceToStr(ns string) string {

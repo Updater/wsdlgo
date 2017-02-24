@@ -4,6 +4,12 @@ type sStruct struct {
 	Name                 string
 	Fields               mapofFields
 	NillableRequiredType bool
+
+	// Custom marshaler related fields.
+	EncoderFields mapofFields
+	Marshaler     bool
+
+	w *wsdl
 }
 
 type mapofStructs map[string]sStruct

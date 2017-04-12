@@ -46,7 +46,7 @@ func main() {
 
 	var files []string
 	for _, f := range os.Args {
-		if !regexp.MustCompile(`\w+.(xml|wsdl|xsd)`).MatchString(f) {
+		if !regexp.MustCompile(`\w+.(xml|wsdl|xsd|asmx)`).MatchString(f) {
 			continue
 		}
 		files = append(files, f)

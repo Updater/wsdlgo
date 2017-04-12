@@ -162,6 +162,7 @@ func (g *generator) parse() error {
 				}
 				xsdSchemas = append(xsdSchemas, xs)
 			}
+			xsdSchemas = append(xsdSchemas, s)
 		}
 
 		if len(xsdSchemas) > 0 {
